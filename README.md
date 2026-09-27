@@ -89,6 +89,10 @@ npm run build:app     # bundle desktop complet
   { path: 'home', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent) }
   ```
 
+**Icônes :**
+- Toujours open-source, utilisables en commercial **sans attribution** (ex. [Lucide](https://lucide.dev), licence ISC).
+- Inlinées en SVG dans les composants (pas de dépendance), `stroke="currentColor"`.
+
 ## Prochaines étapes suggérées
 
 1. Renommer `productName` / icônes dans `src-tauri/`.
