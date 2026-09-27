@@ -57,3 +57,25 @@ body {
   color: var(--text);
   overflow: hidden;
 }
+
+/* Panneau standard des pages de section (placeholder des features). */
+.panel {
+  width: min(720px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+}
+
+.panel p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14.5px;
+}

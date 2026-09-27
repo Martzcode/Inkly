@@ -4,139 +4,19 @@
   height: 100vh;
 }
 
+.shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
 .page {
   flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow-y: auto;
   display: flex;
+  justify-content: center;
   align-items: flex-start;
-  justify-content: center;
-  padding: 40px 20px 32px;
-}
-
-.card {
-  width: min(560px, 100%);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 36px 36px 30px;
-  text-align: center;
-}
-
-.logos {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 8px;
-}
-
-.logo {
-  height: 44px;
-  width: auto;
-}
-
-.eyebrow {
-  margin: 12px 0 0;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-h1 {
-  margin: 6px 0 0;
-  font-size: 30px;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-}
-
-.subtitle {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: 14.5px;
-}
-
-.greet-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 24px;
-}
-
-.greet-row input {
-  flex: 1;
-  min-width: 0;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  padding: 10px 14px;
-  font: inherit;
-  font-size: 14.5px;
-  outline: none;
-}
-
-.greet-row input::placeholder {
-  color: var(--muted);
-}
-
-.greet-row input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgb(47 111 237 / 0.15);
-}
-
-@media (prefers-color-scheme: dark) {
-  .greet-row input:focus {
-    box-shadow: 0 0 0 3px rgb(76 141 255 / 0.25);
-  }
-}
-
-.greet-row button {
-  border: 0;
-  border-radius: 10px;
-  background: var(--accent);
-  color: var(--accent-contrast);
-  padding: 10px 20px;
-  font: inherit;
-  font-size: 14.5px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.greet-row button:hover {
-  background: var(--accent-hover);
-}
-
-.greet-row button:active {
-  transform: translateY(1px);
-}
-
-.greet-row button:focus-visible,
-.greet-row input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.greeting {
-  margin: 16px 0 0;
-  font-size: 14.5px;
-  color: var(--muted);
-  min-height: 1.5em;
-}
-
-.greeting:not(:empty) {
-  color: var(--text);
-}
-
-@media (max-width: 480px) {
-  .card {
-    padding: 28px 20px 24px;
-  }
-
-  .greet-row {
-    flex-direction: column;
-  }
+  padding: 40px 24px 32px;
 }
