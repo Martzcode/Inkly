@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Tauri: dev",
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "Angular: serve",
+      "type": "npm",
+      "script": "start",
+      "problemMatcher": "$tsc",
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "Rust: check (src-tauri)",
+      "type": "shell",
+      "command": "cargo check --manifest-path src-tauri/Cargo.toml",
+      "problemMatcher": "$rustc",
+      "presentation": { "reveal": "silent", "panel": "shared" }
+    }
+  ]
+}

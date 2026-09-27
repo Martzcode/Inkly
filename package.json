@@ -1,0 +1,37 @@
+{
+  "name": "inkly",
+  "version": "0.1.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build:app": "tauri build",
+    "check:front": "npx tsc --noEmit -p tsconfig.app.json",
+    "check:back": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "test:back": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "fmt:back": "cargo fmt --manifest-path src-tauri/Cargo.toml"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "^22.0.1",
+    "@angular/compiler": "^22.0.1",
+    "@angular/core": "^22.0.1",
+    "@angular/forms": "^22.0.1",
+    "@angular/platform-browser": "^22.0.1",
+    "@angular/router": "^22.0.1",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.8.1",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.0.1",
+    "@angular/cli": "^22.0.1",
+    "@angular/compiler-cli": "^22.0.1",
+    "@tauri-apps/cli": "^2",
+    "typescript": "~6.0.3"
+  }
+}

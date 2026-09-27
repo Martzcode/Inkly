@@ -1,0 +1,3 @@
+# Style Rust fige pour `cargo fmt`.
+edition = "2021"
+max_width = 100
