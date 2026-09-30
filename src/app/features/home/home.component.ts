@@ -1,20 +1,18 @@
-import { Component, inject, signal } from '@angular/core';
-import { ApiService } from '../../core/services/api.service';
+import { Component } from '@angular/core';
 
-/** Page d'accueil : démo d'appel au backend Rust via `ApiService`. */
+/**
+ * Page d'accueil : message de bienvenue + ouverture d'un dossier.
+ * `openFolder()` est un stub : le dialogue natif (tauri-plugin-dialog)
+ * sera branché plus tard.
+ */
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
-  private readonly api = inject(ApiService);
-
-  readonly greetingMessage = signal('');
-
-  async greet(event: SubmitEvent, name: string): Promise<void> {
-    event.preventDefault();
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    this.greetingMessage.set(await this.api.greet(name));
+  openFolder(): void {
+    // TODO: ouvrir le sélecteur de dossier via `tauri-plugin-dialog`
+    // puis charger son contenu. Intentionnellement sans effet pour le moment.
   }
 }

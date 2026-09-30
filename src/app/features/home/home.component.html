@@ -1,20 +1,26 @@
+<!-- Icône Lucide (lucide.dev), licence ISC : usage commercial autorisé, sans attribution requise. -->
 <section class="card">
-  <div class="logos">
-    <a href="https://tauri.app" target="_blank" rel="noopener">
-      <img src="/assets/tauri.svg" class="logo" alt="Logo Tauri" />
-    </a>
-    <a href="https://angular.io" target="_blank" rel="noopener">
-      <img src="/assets/angular.svg" class="logo" alt="Logo Angular" />
-    </a>
+  <span class="welcome-icon" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+    </svg>
+  </span>
+
+  <p class="eyebrow">Inkly</p>
+  <h1>Bienvenue sur Inkly</h1>
+  <p class="subtitle">
+    Vos notes, organisées par dossiers et stockées en local sur votre machine.
+    Ouvrez un dossier pour commencer.
+  </p>
+
+  <div class="actions">
+    <button type="button" class="primary" (click)="openFolder()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+      </svg>
+      Ouvrir un dossier
+    </button>
   </div>
 
-  <p class="eyebrow">Tauri + Angular + Rust</p>
-  <h1>Bienvenue sur Inkly</h1>
-  <p class="subtitle">Le backend Rust répond via une commande Tauri.</p>
-
-  <form class="greet-row" (submit)="greet($event, greetInput.value)">
-    <input #greetInput id="greet-input" placeholder="Entrez un nom…" autocomplete="off" />
-    <button type="submit">Saluer</button>
-  </form>
-  <p class="greeting">{{ greetingMessage() }}</p>
+  <p class="hint">Aucun dossier ouvert pour le moment.</p>
 </section>
