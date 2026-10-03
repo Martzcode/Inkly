@@ -21,6 +21,15 @@ export class ProjectStore {
   readonly dirty = signal(false);
   /** Note ouverte en lecture dans le menu Notes (double-clic canvas). */
   readonly activeNoteId = signal<string | null>(null);
+  /** Favoris du projet ouvert (persistés dans `.inkly/canvas.json`). */
+  readonly favorites = signal<string[]>([]);
+
+  readonly isFavorite = (id: string): boolean => this.favorites().includes(id);
+
+  readonly favoriteFiles = computed<ProjectFile[]>(() => {
+    const fav = new Set(this.favorites());
+    return this.files().filter((f) => fav.has(f.id));
+  });
 
   readonly nodes = computed<BoardNode[]>(() => {
     const pos = this.positions();
@@ -39,16 +48,23 @@ export class ProjectStore {
     try {
       const [files, canvas] = await Promise.all([
         this.api.listMarkdownFiles(projectPath),
-        this.api.loadCanvas(projectPath).catch(() => ({
-          version: 1,
-          nodes: {},
-          edges: [],
-        }) as CanvasDoc),
+        this.api.loadCanvas(projectPath).catch(
+          () =>
+            ({
+              version: 1,
+              nodes: {},
+              edges: [],
+              favorites: [],
+            }) as CanvasDoc,
+        ),
       ]);
       this.projectPath.set(projectPath);
       this.files.set(files);
       this.positions.set(canvas.nodes ?? {});
       this.edges.set(canvas.edges ?? []);
+      // Ne garde que les favoris qui existent encore dans le dossier.
+      const known = new Set(files.map((f) => f.id));
+      this.favorites.set((canvas.favorites ?? []).filter((id) => known.has(id)));
       this.dirty.set(false);
       if (!files.some((f) => f.id === this.activeNoteId())) {
         this.activeNoteId.set(null);
@@ -104,6 +120,7 @@ export class ProjectStore {
       version: 1,
       nodes: this.positions(),
       edges: this.edges(),
+      favorites: this.favorites(),
     };
     // Inclut les positions courantes des nœuds (même non déplacés).
     for (const n of this.nodes()) {
@@ -121,6 +138,18 @@ export class ProjectStore {
     this.dirty.set(false);
     this.error.set(null);
     this.activeNoteId.set(null);
+    this.favorites.set([]);
+  }
+
+  toggleFavorite(id: string): boolean {
+    let added = false;
+    this.favorites.update((list) => {
+      if (list.includes(id)) return list.filter((f) => f !== id);
+      added = true;
+      return [...list, id];
+    });
+    this.dirty.set(true);
+    return added;
   }
 
   openNote(id: string): void {

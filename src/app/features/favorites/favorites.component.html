@@ -1,4 +1,40 @@
-<section class="panel">
-  <h2>Favoris</h2>
-  <p>Retrouvez ici vos éléments épinglés. Page en cours de construction.</p>
-</section>
+<!-- Icône Lucide (lucide.dev), licence ISC. -->
+@if (!store.projectPath()) {
+  <section class="panel">
+    <h2>Favoris</h2>
+    <p class="muted">Aucun projet ouvert. Les favoris sont propres à chaque projet.</p>
+    <a routerLink="/home" class="primary">Aller à l'accueil</a>
+  </section>
+} @else if (store.favoriteFiles().length === 0) {
+  <section class="panel">
+    <h2>Favoris</h2>
+    <p class="muted">
+      Aucun favori dans ce projet. Survolez un fichier du canvas et cliquez sur l'étoile.
+    </p>
+    <a routerLink="/board" class="primary">Retour au canvas</a>
+  </section>
+} @else {
+  <section class="toolbar">
+    <div>
+      <p class="eyebrow">Favoris</p>
+      <h2 class="title">{{ store.favoriteFiles().length }} note(s) épinglée(s)</h2>
+    </div>
+    <a routerLink="/board" class="ghost">Retour au canvas</a>
+  </section>
+
+  <ul class="fav-list">
+    @for (f of store.favoriteFiles(); track f.id) {
+      <li class="fav-item">
+        <button type="button" class="open" (click)="open(f.id)" [title]="f.name">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+          <span>{{ f.name }}</span>
+        </button>
+        <button type="button" class="remove" (click)="remove(f.id)" aria-label="Retirer des favoris">
+          Retirer
+        </button>
+      </li>
+    }
+  </ul>
+}

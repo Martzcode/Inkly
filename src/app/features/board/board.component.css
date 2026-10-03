@@ -146,6 +146,9 @@
   min-height: 560px;
   height: calc(100vh - 300px);
   overflow: auto;
+  /* Réserve la gouttière de scrollbar : son apparition/disparition
+     (repaint WebKitGTK au survol) ne décale plus le contenu. */
+  scrollbar-gutter: stable;
   background:
     radial-gradient(circle, var(--border) 1px, transparent 1px) 0 0 / 22px 22px,
     var(--surface);
@@ -181,10 +184,18 @@
   cursor: pointer;
 }
 
-.node {
+.node-wrap {
   position: absolute;
   width: 124px;
   height: 92px;
+  /* Isole le layout : le survol / l'étoile ne peuvent pas
+     recalculer le reste du canvas. */
+  contain: layout;
+}
+
+.node {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -204,10 +215,53 @@
   cursor: grabbing;
 }
 
-.node.selected {
+.node-wrap.selected .node {
   border-color: var(--accent);
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Étoile hors du flux flex : sœur de .node, jamais enfant.
+   Son apparition ne touche à aucune boîte de layout. */
+.node-wrap .fav {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.node-wrap:hover .fav,
+.node-wrap:focus-within .fav,
+.node-wrap.selected .fav,
+.node-wrap.is-fav .fav {
+  opacity: 1;
+  visibility: visible;
+}
+
+.node-wrap .fav:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.node-wrap .fav.active {
+  color: var(--accent);
+}
+
+.node-wrap .fav.active svg polygon {
+  fill: currentColor;
 }
 
 .node .name {

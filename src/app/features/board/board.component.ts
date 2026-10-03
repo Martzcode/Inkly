@@ -96,6 +96,18 @@ export class BoardComponent implements OnInit, OnDestroy {
     void this.router.navigate(['/notes']);
   }
 
+  /** Étoile : ajoute/retire des favoris du projet (sans lier ni ouvrir). */
+  toggleFavorite(event: MouseEvent, id: string): void {
+    event.stopPropagation();
+    this.dragMoved = false;
+    this.store.toggleFavorite(id);
+    this.scheduleSave();
+  }
+
+  isFavorite(id: string): boolean {
+    return this.store.isFavorite(id);
+  }
+
   onEdgeClick(id: string, event: MouseEvent): void {
     event.stopPropagation();
     this.selectedEdgeId.set(id);

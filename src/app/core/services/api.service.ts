@@ -28,6 +28,7 @@ export interface CanvasDoc {
   version: number;
   nodes: Record<string, NodePosition>;
   edges: CanvasEdge[];
+  favorites: string[];
 }
 
 /**

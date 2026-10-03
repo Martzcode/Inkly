@@ -6,7 +6,8 @@
 //! {
 //!   "version": 1,
 //!   "nodes": { "note.md": { "x": 120.0, "y": 80.0 } },
-//!   "edges": [{ "id": "…", "from": "a.md", "to": "b.md", "directed": true }]
+//!   "edges": [{ "id": "…", "from": "a.md", "to": "b.md", "directed": true }],
+//!   "favorites": ["note.md"]
 //! }
 //! ```
 
@@ -64,6 +65,9 @@ pub struct CanvasDoc {
     pub nodes: HashMap<String, NodePosition>,
     #[serde(default)]
     pub edges: Vec<CanvasEdge>,
+    /// Noms de fichiers épinglés en favoris (propres au projet).
+    #[serde(default)]
+    pub favorites: Vec<String>,
 }
 
 fn canvas_version() -> u32 {
@@ -76,6 +80,7 @@ impl Default for CanvasDoc {
             version: CANVAS_VERSION,
             nodes: HashMap::new(),
             edges: Vec::new(),
+            favorites: Vec::new(),
         }
     }
 }
@@ -171,6 +176,13 @@ pub fn save_canvas(project_path: String, canvas: CanvasDoc) -> Result<(), AppErr
         };
         seen.insert(key)
     });
+    // Favoris : dédoublonne + ne garde que des noms de fichiers markdown valides.
+    {
+        let mut seen_fav = std::collections::HashSet::new();
+        doc.favorites
+            .retain(|f| validate_file_id(f).is_ok() && seen_fav.insert(f.clone()));
+        doc.favorites.sort();
+    }
     let raw = serde_json::to_string_pretty(&doc)
         .map_err(|e| AppError::Internal(format!("cannot serialize canvas: {e}")))?;
     std::fs::write(&file, raw)
@@ -270,6 +282,7 @@ mod tests {
                 to: "b.md".into(),
                 directed: false,
             }],
+            favorites: vec!["b.md".into(), "a.md".into(), "b.md".into()],
         };
         let path = dir.to_string_lossy().to_string();
         save_canvas(path.clone(), doc).unwrap();
@@ -279,6 +292,7 @@ mod tests {
         assert_eq!(loaded.nodes["a.md"], NodePosition { x: 10.0, y: 20.0 });
         assert_eq!(loaded.edges.len(), 1);
         assert!(!loaded.edges[0].directed);
+        assert_eq!(loaded.favorites, vec!["a.md".to_string(), "b.md".to_string()]);
 
         let _ = std::fs::remove_dir_all(&dir);
     }

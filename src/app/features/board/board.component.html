@@ -92,29 +92,46 @@
 
       @for (node of store.nodes(); track node.id) {
         <div
-          class="node"
+          class="node-wrap"
           [class.selected]="selectedSourceId() === node.id"
+          [class.is-fav]="store.isFavorite(node.id)"
           [style.left.px]="node.x"
           [style.top.px]="node.y"
-          (pointerdown)="onNodePointerDown($event, node.id)"
-          (pointermove)="onNodePointerMove($event, node.id)"
-          (pointerup)="onNodePointerUp()"
-          (click)="onNodeClick($event, node.id)"
-          (dblclick)="openNote(node.id)"
-          (keydown.enter)="openNote(node.id)"
-          role="button"
-          tabindex="0"
-          [attr.aria-label]="node.name"
-          [title]="node.name"
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <path d="M14 2v6h6" />
-            <path d="M9 13h6M9 17h4" />
-          </svg>
-          <span class="name">{{ fileLabel(node.name) }}</span>
-          <span class="badge">.md</span>
+          <div
+            class="node"
+            (pointerdown)="onNodePointerDown($event, node.id)"
+            (pointermove)="onNodePointerMove($event, node.id)"
+            (pointerup)="onNodePointerUp()"
+            (click)="onNodeClick($event, node.id)"
+            (dblclick)="openNote(node.id)"
+            (keydown.enter)="openNote(node.id)"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="node.name"
+            [title]="node.name"
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <path d="M14 2v6h6" />
+              <path d="M9 13h6M9 17h4" />
+            </svg>
+            <span class="name">{{ fileLabel(node.name) }}</span>
+            <span class="badge">.md</span>
+          </div>
+          <button
+            type="button"
+            class="fav"
+            [class.active]="store.isFavorite(node.id)"
+            [attr.aria-label]="store.isFavorite(node.id) ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+            [attr.title]="store.isFavorite(node.id) ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+            (click)="toggleFavorite($event, node.id)"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+          </button>
         </div>
       }
     </div>
