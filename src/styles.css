@@ -91,3 +91,99 @@ body {
   color: var(--muted);
   font-size: 14.5px;
 }
+
+/* Typographie du Markdown rendu/injecté (innerHTML à l'exécution).
+   Global et NON encapsulé : l'encapsulation émulée d'Angular ajoute
+   un attribut aux seuls éléments du template, jamais au HTML inséré
+   via innerHTML — ces règles ne fonctionneraient pas en CSS composant. */
+.md-content h1,
+.md-content h2,
+.md-content h3,
+.md-content h4 {
+  margin: 1.2em 0 0.5em;
+  line-height: 1.3;
+}
+
+.md-content h1:first-child,
+.md-content h2:first-child {
+  margin-top: 0;
+}
+
+.md-content p {
+  margin: 0.7em 0;
+}
+
+.md-content ul,
+.md-content ol {
+  margin: 0.7em 0;
+  padding-left: 1.6em;
+}
+
+.md-content blockquote {
+  margin: 0.9em 0;
+  padding: 4px 14px;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-radius: 0 8px 8px 0;
+}
+
+.md-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.88em;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+
+.md-content pre {
+  overflow: auto;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.md-content pre code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.md-content a {
+  color: var(--accent);
+}
+
+.md-content table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+  /* Colonnes fixes : le contenu (logos, longues URL) ne peut plus
+     élargir le tableau au-delà de la page. */
+  table-layout: fixed;
+}
+
+.md-content th,
+.md-content td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.md-content img {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  width: auto;
+  height: auto;
+  margin: 1em auto;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+/* Logos et images en cellule : contenus à la cellule, jamais géants. */
+.md-content th img,
+.md-content td img {
+  max-height: 160px;
+  margin: 4px auto;
+}

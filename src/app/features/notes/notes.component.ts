@@ -28,7 +28,15 @@ import TurndownService from 'turndown';
 import { gfm } from 'turndown-plugin-gfm';
 import { ApiService } from '../../core/services/api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import type { DictKey } from '../../core/i18n/i18n.service';
 import { ProjectStore } from '../../core/services/project-store.service';
+
+/** Un pas d'historique : contenu + position du curseur (offsets texte). */
+interface HistoryEntry {
+  html: string;
+  start: number;
+  end: number;
+}
 
 /**
  * Menu Notes : page style traitement de texte d'un fichier Markdown
@@ -102,6 +110,13 @@ export class NotesComponent implements OnDestroy {
   private loadToken = 0;
   private readonly onSelectionChange = (): void => this.updateActiveStates();
 
+  /** Historique propre (le natif est court et cassé par les commandes). */
+  private undoStack: HistoryEntry[] = [];
+  private redoStack: HistoryEntry[] = [];
+  private lastCommit = 0;
+  private static readonly HISTORY_LIMIT = 100;
+  private static readonly COALESCE_MS = 1000;
+
   constructor(
     readonly store: ProjectStore,
     readonly i18n: I18nService,
@@ -142,11 +157,126 @@ export class NotesComponent implements OnDestroy {
     if (projectPath && fileId) void this.load(projectPath, fileId);
   }
 
-  /** Frappe dans la page : mémorise + sauvegarde auto. */
+  /** Frappe dans la page : mémorise + historique + sauvegarde auto. */
   onEdit(event: Event): void {
     if (!this.shownFileId) return;
     this.lastHtml = (event.target as HTMLElement).innerHTML;
+    this.commitHistory();
     this.markDirtySoon();
+  }
+
+  /** Annule le dernier pas (100 pas max, curseur restauré). */
+  undo(): void {
+    if (!this.shownFileId || this.undoStack.length < 2) return;
+    const current = this.undoStack.pop() as HistoryEntry;
+    this.redoStack.push(current);
+    this.restoreSnapshot(this.undoStack[this.undoStack.length - 1]);
+  }
+
+  /** Rétablit le pas annulé. */
+  redo(): void {
+    const next = this.redoStack.pop();
+    if (!this.shownFileId || !next) return;
+    this.undoStack.push(next);
+    if (this.undoStack.length > NotesComponent.HISTORY_LIMIT) {
+      this.undoStack.shift();
+    }
+    this.restoreSnapshot(next);
+  }
+
+  /**
+   * Mémorise l'état courant. La frappe rapide (< 1 s) fusionne en un
+   * seul pas ; les actions du ruban (`force`) créent toujours un pas.
+   */
+  private commitHistory(force = false): void {
+    const editor = this.editorEl?.nativeElement;
+    if (!editor || !this.shownFileId) return;
+    const html = editor.innerHTML;
+    this.lastHtml = html;
+    const caret = this.caretToOffsets() ?? { start: 0, end: 0 };
+    const top = this.undoStack[this.undoStack.length - 1];
+    if (top && top.html === html) {
+      top.start = caret.start;
+      top.end = caret.end;
+      return;
+    }
+    if (!force && top && Date.now() - this.lastCommit < NotesComponent.COALESCE_MS) {
+      this.undoStack[this.undoStack.length - 1] = { html, ...caret };
+      return;
+    }
+    this.undoStack.push({ html, ...caret });
+    if (this.undoStack.length > NotesComponent.HISTORY_LIMIT) {
+      this.undoStack.shift();
+    }
+    this.redoStack.length = 0;
+    this.lastCommit = Date.now();
+  }
+
+  private restoreSnapshot(entry: HistoryEntry): void {
+    this.lastHtml = entry.html;
+    if (this.editorEl) {
+      this.editorEl.nativeElement.innerHTML = entry.html;
+      this.offsetsToCaret(entry.start, entry.end);
+      this.editorEl.nativeElement.focus({ preventScroll: true });
+    }
+    this.updateActiveStates();
+    this.markDirtySoon();
+  }
+
+  /** Curseur → offsets caractères depuis le début de la page. */
+  private caretToOffsets(): { start: number; end: number } | null {
+    const editor = this.editorEl?.nativeElement;
+    const sel = window.getSelection();
+    if (!editor || !sel || sel.rangeCount === 0) return null;
+    const range = sel.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) return null;
+    const toOffset = (node: Node, offset: number): number => {
+      const probe = document.createRange();
+      probe.selectNodeContents(editor);
+      probe.setEnd(node, offset);
+      return probe.toString().length;
+    };
+    return {
+      start: toOffset(range.startContainer, range.startOffset),
+      end: toOffset(range.endContainer, range.endOffset),
+    };
+  }
+
+  /** Offsets → replace le curseur (borné, sans exception). */
+  private offsetsToCaret(start: number, end: number): void {
+    const editor = this.editorEl?.nativeElement;
+    if (!editor) return;
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+    const locate = (target: number): { node: Node; offset: number } => {
+      walker.currentNode = editor;
+      let seen = 0;
+      let fallback: { node: Node; offset: number } = {
+        node: editor,
+        offset: editor.childNodes.length,
+      };
+      let text = walker.nextNode();
+      while (text) {
+        const len = text.textContent?.length ?? 0;
+        if (seen + len >= target) return { node: text, offset: target - seen };
+        seen += len;
+        fallback = { node: text, offset: len };
+        text = walker.nextNode();
+      }
+      return fallback;
+    };
+    try {
+      const total = editor.textContent?.length ?? 0;
+      const a = locate(Math.min(Math.max(start, 0), total));
+      const b = locate(Math.min(Math.max(end, 0), total));
+      const range = document.createRange();
+      range.setStart(a.node, Math.min(a.offset, a.node.textContent?.length ?? 0));
+      range.setEnd(b.node, Math.min(b.offset, b.node.textContent?.length ?? 0));
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+    } catch {
+      // Position introuvable : on laisse le curseur où il est.
+    }
   }
 
   // --- Ruban de mise en forme (tout le Markdown éditable) ---
@@ -244,11 +374,12 @@ export class NotesComponent implements OnDestroy {
     this.afterRibbonEdit();
   }
 
-  /** Après une action du ruban : synchro + états + autosave. */
+  /** Après une action du ruban : synchro + pas d'historique + autosave. */
   private afterRibbonEdit(): void {
     const editor = this.editorEl?.nativeElement;
     if (!editor || !this.shownFileId) return;
     this.lastHtml = editor.innerHTML;
+    this.commitHistory(true);
     this.markDirtySoon();
     this.updateActiveStates();
   }
@@ -289,6 +420,89 @@ export class NotesComponent implements OnDestroy {
     return this.activeStates()[command] ?? false;
   }
 
+  /** Touche modificateur affichée dans les infobulles (Cmd sur Mac). */
+  private readonly modKey = /mac/i.test(navigator.userAgent ?? '') ? 'Cmd' : 'Ctrl';
+
+  /** Libellé + raccourci pour les infobulles du ruban. */
+  tip(key: DictKey, shortcut: string): string {
+    return `${this.i18n.t(key)} (${this.modKey}+${shortcut})`;
+  }
+
+  /**
+   * Raccourcis standard d'édition (Docs/Word) :
+   * - natifs (laissés au navigateur) : gras, italique, souligné,
+   *   annuler, rétablir ;
+   * - gérés ici : lien, enregistrement, barré, listes, titres.
+   */
+  onKeydown(event: KeyboardEvent): void {
+    if ((!event.ctrlKey && !event.metaKey) || !this.shownFileId) return;
+    const key = event.key.toLowerCase();
+    // Annuler/rétablir maison (100 pas) : priorité sur le natif limité.
+    if (key === 'z' && !event.altKey) {
+      event.preventDefault();
+      if (event.shiftKey) this.redo();
+      else this.undo();
+      return;
+    }
+    if (key === 'y' && !event.shiftKey && !event.altKey) {
+      event.preventDefault();
+      this.redo();
+      return;
+    }
+    if (event.shiftKey && !event.altKey) {
+      if (event.code === 'Digit7') {
+        event.preventDefault();
+        this.exec('insertOrderedList');
+        return;
+      }
+      if (event.code === 'Digit8') {
+        event.preventDefault();
+        this.exec('insertUnorderedList');
+        return;
+      }
+      if (key === 's') {
+        event.preventDefault();
+        this.exec('strikeThrough');
+        return;
+      }
+      return; // natifs (ex. rétablir via Maj) : on laisse faire
+    }
+    if (event.altKey && !event.shiftKey) {
+      const blocks: Record<string, 'p' | 'h1' | 'h2' | 'h3'> = {
+        Digit0: 'p',
+        Digit1: 'h1',
+        Digit2: 'h2',
+        Digit3: 'h3',
+      };
+      const tag = blocks[event.code];
+      if (tag) {
+        event.preventDefault();
+        this.formatBlock(tag);
+      }
+      return;
+    }
+    if (event.shiftKey || event.altKey) return;
+    if (key === 'k') {
+      event.preventDefault();
+      this.insertLink();
+      return;
+    }
+    if (key === 's') {
+      // Évite la boîte « enregistrer la page » du navigateur.
+      event.preventDefault();
+      this.saveNow();
+    }
+    // b, i, u, z, y : natifs, on laisse faire.
+  }
+
+  /** Écrit le brouillon immédiatement (ex. Ctrl+S). */
+  saveNow(): void {
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    if (this.dirty() && this.shownPath && this.shownFileId) {
+      void this.persistTo(this.shownPath, this.shownFileId);
+    }
+  }
+
   /** Écrit le brouillon courant (chemin/ID mémorisés, pas ceux du store). */
   private async flushDraft(): Promise<void> {
     if (!this.dirty() || !this.shownPath || !this.shownFileId || this.lastHtml === null) {
@@ -311,6 +525,10 @@ export class NotesComponent implements OnDestroy {
       this.shownPath = projectPath;
       this.shownFileId = fileId;
       this.dirty.set(false);
+      // Historique neuf : l'état chargé est le point de départ.
+      this.undoStack = [{ html: this.lastHtml, start: 0, end: 0 }];
+      this.redoStack = [];
+      this.lastCommit = 0;
       this.applyToEditor();
     } catch (e) {
       if (token !== this.loadToken) return;

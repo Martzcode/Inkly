@@ -32,22 +32,22 @@
   } @else {
     <div class="ribbon" role="toolbar" [attr.aria-label]="i18n.t('ribbon.toolbar')">
       <div class="group">
-        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('undo')" [attr.title]="i18n.t('ribbon.undo')" [attr.aria-label]="i18n.t('ribbon.undo')">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="undo()" [attr.title]="tip('ribbon.undo', 'Z')" [attr.aria-label]="i18n.t('ribbon.undo')">
           <svg lucideUndo2 [size]="16" aria-hidden="true"></svg>
         </button>
-        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('redo')" [attr.title]="i18n.t('ribbon.redo')" [attr.aria-label]="i18n.t('ribbon.redo')">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="redo()" [attr.title]="tip('ribbon.redo', 'Y')" [attr.aria-label]="i18n.t('ribbon.redo')">
           <svg lucideRedo2 [size]="16" aria-hidden="true"></svg>
         </button>
       </div>
       <span class="sep" aria-hidden="true"></span>
       <div class="group">
-        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('bold')" [class.active]="isActive('bold')" [attr.title]="i18n.t('ribbon.bold')" [attr.aria-label]="i18n.t('ribbon.bold')">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('bold')" [class.active]="isActive('bold')" [attr.title]="tip('ribbon.bold', 'B')" [attr.aria-label]="i18n.t('ribbon.bold')">
           <svg lucideBold [size]="16" aria-hidden="true"></svg>
         </button>
-        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('italic')" [class.active]="isActive('italic')" [attr.title]="i18n.t('ribbon.italic')" [attr.aria-label]="i18n.t('ribbon.italic')">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('italic')" [class.active]="isActive('italic')" [attr.title]="tip('ribbon.italic', 'I')" [attr.aria-label]="i18n.t('ribbon.italic')">
           <svg lucideItalic [size]="16" aria-hidden="true"></svg>
         </button>
-        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('strikeThrough')" [class.active]="isActive('strikeThrough')" [attr.title]="i18n.t('ribbon.strike')" [attr.aria-label]="i18n.t('ribbon.strike')">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('strikeThrough')" [class.active]="isActive('strikeThrough')" [attr.title]="tip('ribbon.strike', 'Shift+S')" [attr.aria-label]="i18n.t('ribbon.strike')">
           <svg lucideStrikethrough [size]="16" aria-hidden="true"></svg>
         </button>
         <button type="button" (mousedown)="$event.preventDefault()" (click)="wrapInlineCode()" [attr.title]="i18n.t('ribbon.codeInline')" [attr.aria-label]="i18n.t('ribbon.codeInline')">
@@ -59,25 +59,25 @@
       </div>
       <span class="sep" aria-hidden="true"></span>
       <div class="group">
-        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('p')" [class.active]="activeBlock() === 'p'" [attr.title]="i18n.t('ribbon.paragraph')" [attr.aria-label]="i18n.t('ribbon.paragraph')">
+        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('p')" [class.active]="activeBlock() === 'p'" [attr.title]="tip('ribbon.paragraph', 'Alt+0')" [attr.aria-label]="i18n.t('ribbon.paragraph')">
           <svg lucidePilcrow [size]="16" aria-hidden="true"></svg>
         </button>
-        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('h1')" [class.active]="activeBlock() === 'h1'" [attr.title]="i18n.t('ribbon.h1')" [attr.aria-label]="i18n.t('ribbon.h1')">
+        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('h1')" [class.active]="activeBlock() === 'h1'" [attr.title]="tip('ribbon.h1', 'Alt+1')" [attr.aria-label]="i18n.t('ribbon.h1')">
           <svg lucideHeading1 [size]="16" aria-hidden="true"></svg>
         </button>
-        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('h2')" [class.active]="activeBlock() === 'h2'" [attr.title]="i18n.t('ribbon.h2')" [attr.aria-label]="i18n.t('ribbon.h2')">
+        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('h2')" [class.active]="activeBlock() === 'h2'" [attr.title]="tip('ribbon.h2', 'Alt+2')" [attr.aria-label]="i18n.t('ribbon.h2')">
           <svg lucideHeading2 [size]="16" aria-hidden="true"></svg>
         </button>
-        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('h3')" [class.active]="activeBlock() === 'h3'" [attr.title]="i18n.t('ribbon.h3')" [attr.aria-label]="i18n.t('ribbon.h3')">
+        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('h3')" [class.active]="activeBlock() === 'h3'" [attr.title]="tip('ribbon.h3', 'Alt+3')" [attr.aria-label]="i18n.t('ribbon.h3')">
           <svg lucideHeading3 [size]="16" aria-hidden="true"></svg>
         </button>
       </div>
       <span class="sep" aria-hidden="true"></span>
       <div class="group">
-        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('insertUnorderedList')" [class.active]="isActive('insertUnorderedList')" [attr.title]="i18n.t('ribbon.bullet')" [attr.aria-label]="i18n.t('ribbon.bullet')">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('insertUnorderedList')" [class.active]="isActive('insertUnorderedList')" [attr.title]="tip('ribbon.bullet', 'Shift+8')" [attr.aria-label]="i18n.t('ribbon.bullet')">
           <svg lucideList [size]="16" aria-hidden="true"></svg>
         </button>
-        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('insertOrderedList')" [class.active]="isActive('insertOrderedList')" [attr.title]="i18n.t('ribbon.numbered')" [attr.aria-label]="i18n.t('ribbon.numbered')">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('insertOrderedList')" [class.active]="isActive('insertOrderedList')" [attr.title]="tip('ribbon.numbered', 'Shift+7')" [attr.aria-label]="i18n.t('ribbon.numbered')">
           <svg lucideListOrdered [size]="16" aria-hidden="true"></svg>
         </button>
         <button type="button" (mousedown)="$event.preventDefault()" (click)="formatBlock('blockquote')" [class.active]="activeBlock() === 'blockquote'" [attr.title]="i18n.t('ribbon.quote')" [attr.aria-label]="i18n.t('ribbon.quote')">
@@ -89,7 +89,7 @@
       </div>
       <span class="sep" aria-hidden="true"></span>
       <div class="group">
-        <button type="button" (mousedown)="$event.preventDefault()" (click)="insertLink()" [attr.title]="i18n.t('ribbon.link')" [attr.aria-label]="i18n.t('ribbon.link')">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="insertLink()" [attr.title]="tip('ribbon.link', 'K')" [attr.aria-label]="i18n.t('ribbon.link')">
           <svg lucideLink [size]="16" aria-hidden="true"></svg>
         </button>
         <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('unlink')" [attr.title]="i18n.t('ribbon.unlink')" [attr.aria-label]="i18n.t('ribbon.unlink')">
@@ -117,13 +117,14 @@
       </header>
       <div
         #editor
-        class="page"
+        class="page md-content"
         contenteditable="true"
         spellcheck="true"
         role="textbox"
         aria-multiline="true"
         [attr.aria-label]="store.activeNoteId()"
         (input)="onEdit($event)"
+        (keydown)="onKeydown($event)"
       ></div>
     </article>
   }
