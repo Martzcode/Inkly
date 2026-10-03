@@ -1,25 +1,24 @@
-<!-- Icône Lucide (lucide.dev), licence ISC. -->
 @if (!store.projectPath()) {
   <section class="panel">
-    <h2>Favoris</h2>
-    <p class="muted">Aucun projet ouvert. Les favoris sont propres à chaque projet.</p>
-    <a routerLink="/home" class="primary">Aller à l'accueil</a>
+    <h2>{{ i18n.t('fav.title') }}</h2>
+    <p class="muted">{{ i18n.t('fav.noProject') }}</p>
+    <a routerLink="/home" class="primary">{{ i18n.t('fav.goHome') }}</a>
   </section>
 } @else if (store.favoriteFiles().length === 0) {
   <section class="panel">
-    <h2>Favoris</h2>
+    <h2>{{ i18n.t('fav.title') }}</h2>
     <p class="muted">
-      Aucun favori dans ce projet. Survolez un fichier du canvas et cliquez sur l'étoile.
+      {{ i18n.t('fav.empty') }}
     </p>
-    <a routerLink="/board" class="primary">Retour au canvas</a>
+    <a routerLink="/board" class="primary">{{ i18n.t('fav.backCanvas') }}</a>
   </section>
 } @else {
   <section class="toolbar">
     <div>
-      <p class="eyebrow">Favoris</p>
-      <h2 class="title">{{ store.favoriteFiles().length }} note(s) épinglée(s)</h2>
+      <p class="eyebrow">{{ i18n.t('fav.eyebrow') }}</p>
+      <h2 class="title">{{ store.favoriteFiles().length === 1 ? i18n.t('fav.countOne', { count: 1 }) : i18n.t('fav.countOther', { count: store.favoriteFiles().length }) }}</h2>
     </div>
-    <a routerLink="/board" class="ghost">Retour au canvas</a>
+    <a routerLink="/board" class="ghost">{{ i18n.t('fav.backCanvas') }}</a>
   </section>
 
   <ul class="fav-list">
@@ -29,8 +28,8 @@
           <svg lucideStar [size]="16" fill="currentColor" aria-hidden="true"></svg>
           <span>{{ f.name }}</span>
         </button>
-        <button type="button" class="remove" (click)="remove(f.id)" aria-label="Retirer des favoris">
-          Retirer
+        <button type="button" class="remove" (click)="remove(f.id)" [attr.aria-label]="i18n.t('fav.removeAria')">
+          {{ i18n.t('fav.remove') }}
         </button>
       </li>
     }

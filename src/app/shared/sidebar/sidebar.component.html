@@ -3,7 +3,7 @@
      réintroduire de tooltip custom sans tester dans la vraie fenêtre Tauri. -->
 <nav class="sidebar" aria-label="Navigation principale">
   <div class="group">
-    @for (item of mainItems; track item.route) {
+    @for (item of mainItems(); track item.route) {
       <a
         class="nav-item"
         [routerLink]="item.route"
@@ -21,8 +21,8 @@
         routerLink="/board"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
-        aria-label="Projet ouvert"
-        title="Projet ouvert"
+        [attr.aria-label]="boardLabel()"
+        [attr.title]="boardLabel()"
       >
         <svg [lucideIcon]="boardIcon" [size]="20" aria-hidden="true"></svg>
       </a>
@@ -32,7 +32,7 @@
   <div class="spacer"></div>
 
   <div class="group">
-    @for (item of bottomItems; track item.route) {
+    @for (item of bottomItems(); track item.route) {
       <a
         class="nav-item"
         [routerLink]="item.route"

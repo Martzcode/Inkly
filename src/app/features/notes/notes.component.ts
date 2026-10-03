@@ -2,6 +2,7 @@ import { Component, effect, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { marked } from 'marked';
 import { ApiService } from '../../core/services/api.service';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ProjectStore } from '../../core/services/project-store.service';
 
 /**
@@ -23,6 +24,7 @@ export class NotesComponent {
 
   constructor(
     readonly store: ProjectStore,
+    readonly i18n: I18nService,
     private api: ApiService,
   ) {
     marked.setOptions({ breaks: true });

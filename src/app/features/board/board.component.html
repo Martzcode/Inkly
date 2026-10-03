@@ -1,16 +1,16 @@
 @if (!store.projectPath()) {
   <section class="empty">
-    <p>Aucun projet ouvert.</p>
-    <a routerLink="/home" class="primary">Retour à l'accueil</a>
+    <p>{{ i18n.t('board.noProject') }}</p>
+    <a routerLink="/home" class="primary">{{ i18n.t('board.backHome') }}</a>
   </section>
 } @else {
   <section class="toolbar">
     <div class="proj">
-      <button type="button" class="close" title="Fermer le projet" aria-label="Fermer le projet" (click)="closeProject()">
+      <button type="button" class="close" [attr.title]="i18n.t('board.closeProject')" [attr.aria-label]="i18n.t('board.closeProject')" (click)="closeProject()">
         <svg lucideX [size]="16" aria-hidden="true"></svg>
       </button>
       <div>
-        <p class="eyebrow">Projet</p>
+        <p class="eyebrow">{{ i18n.t('board.project') }}</p>
         <h2 class="path" [title]="store.projectPath()">{{ store.projectPath() }}</h2>
       </div>
     </div>
@@ -21,41 +21,40 @@
           [checked]="directedDefault()"
           (change)="directedDefault.set($any($event.target).checked)"
         />
-        Flèche avec pointe
+        {{ i18n.t('board.directed') }}
       </label>
       <button type="button" class="primary" (click)="saveNow()" [disabled]="saveState() === 'saving'">
-        @if (saveState() === 'saving') { Enregistrement… }
-        @else if (saveState() === 'saved') { Enregistré ✓ }
-        @else if (saveState() === 'error') { Réessayer }
-        @else { Enregistrer @if (store.dirty()) { • } }
+        @if (saveState() === 'saving') { {{ i18n.t('board.saving') }} }
+        @else if (saveState() === 'saved') { {{ i18n.t('board.saved') }} }
+        @else if (saveState() === 'error') { {{ i18n.t('board.retry') }} }
+        @else { {{ i18n.t('board.save') }} @if (store.dirty()) { • } }
       </button>
     </div>
   </section>
 
   @if (store.loading()) {
-    <p class="hint">Chargement du projet…</p>
+    <p class="hint">{{ i18n.t('board.loading') }}</p>
   } @else if (store.nodes().length === 0) {
-    <p class="hint">Aucun fichier Markdown dans ce dossier. Ajoutez des fichiers <code>.md</code> à la racine.</p>
+    <p class="hint">{{ i18n.t('board.noFilesA') }} {{ i18n.t('board.noFilesB', { ext: '.md' }) }}</p>
   } @else {
     <p class="hint">
-      Glissez les icônes pour organiser. Cliquez sur un fichier puis un autre pour les lier.
-      Double-cliquez pour ouvrir la note. Cliquez sur un trait pour changer son style ou le supprimer.
+      {{ i18n.t('board.hint') }}
     </p>
     <div class="canvas-wrap">
       @if (selectedSourceId()) {
         <p class="banner overlay">
-          Cliquez sur un second fichier pour créer la liaison
-          ({{ directedDefault() ? 'avec pointe' : 'sans tête' }}).
-          <button type="button" (click)="cancelLinking()">Annuler</button>
+          {{ i18n.t('board.linking') }}
+          ({{ directedDefault() ? i18n.t('board.withHead') : i18n.t('board.withoutHead') }}).
+          <button type="button" (click)="cancelLinking()">{{ i18n.t('board.cancel') }}</button>
         </p>
       }
 
       @if (selectedEdge()) {
         <p class="banner overlay">
-          Liaison {{ selectedEdge()!.from }} → {{ selectedEdge()!.to }}
-          ({{ selectedEdge()!.directed ? 'avec pointe' : 'sans tête' }})
-          <button type="button" (click)="toggleSelectedEdge()">Inverser le style</button>
-          <button type="button" class="danger" (click)="deleteSelectedEdge()">Supprimer</button>
+          {{ i18n.t('board.edgeTitle', { from: selectedEdge()!.from, to: selectedEdge()!.to }) }}
+          ({{ selectedEdge()!.directed ? i18n.t('board.withHead') : i18n.t('board.withoutHead') }})
+          <button type="button" (click)="toggleSelectedEdge()">{{ i18n.t('board.invert') }}</button>
+          <button type="button" class="danger" (click)="deleteSelectedEdge()">{{ i18n.t('board.delete') }}</button>
         </p>
       }
 
@@ -115,8 +114,8 @@
             type="button"
             class="fav"
             [class.active]="store.isFavorite(node.id)"
-            [attr.aria-label]="store.isFavorite(node.id) ? 'Retirer des favoris' : 'Ajouter aux favoris'"
-            [attr.title]="store.isFavorite(node.id) ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+            [attr.aria-label]="store.isFavorite(node.id) ? i18n.t('board.favRemove') : i18n.t('board.favAdd')"
+            [attr.title]="store.isFavorite(node.id) ? i18n.t('board.favRemove') : i18n.t('board.favAdd')"
             (click)="toggleFavorite($event, node.id)"
           >
             <svg lucideStar [size]="15" [attr.fill]="store.isFavorite(node.id) ? 'currentColor' : 'none'" aria-hidden="true"></svg>

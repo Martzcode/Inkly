@@ -6,15 +6,15 @@
 
   @if (isTauri()) {
     <div class="controls">
-      <button type="button" class="ctl" (click)="minimize()" aria-label="Réduire" title="Réduire">
+      <button type="button" class="ctl" (click)="minimize()" [attr.aria-label]="i18n.t('titlebar.minimize')" [attr.title]="i18n.t('titlebar.minimize')">
         <svg lucideMinus [size]="14" aria-hidden="true"></svg>
       </button>
       <button
         type="button"
         class="ctl"
         (click)="toggleMaximize()"
-        [attr.aria-label]="isMaximized() ? 'Restaurer' : 'Agrandir'"
-        [title]="isMaximized() ? 'Restaurer' : 'Agrandir'"
+        [attr.aria-label]="isMaximized() ? i18n.t('titlebar.restore') : i18n.t('titlebar.maximize')"
+        [attr.title]="isMaximized() ? i18n.t('titlebar.restore') : i18n.t('titlebar.maximize')"
       >
         @if (isMaximized()) {
           <svg lucideCopy [size]="14" aria-hidden="true"></svg>
@@ -22,7 +22,7 @@
           <svg lucideSquare [size]="14" aria-hidden="true"></svg>
         }
       </button>
-      <button type="button" class="ctl close" (click)="close()" aria-label="Fermer" title="Fermer">
+      <button type="button" class="ctl close" (click)="close()" [attr.aria-label]="i18n.t('titlebar.close')" [attr.title]="i18n.t('titlebar.close')">
         <svg lucideX [size]="14" aria-hidden="true"></svg>
       </button>
     </div>

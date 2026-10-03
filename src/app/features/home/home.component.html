@@ -4,23 +4,22 @@
   </span>
 
   <p class="eyebrow">Inkly</p>
-  <h1>Bienvenue sur Inkly</h1>
+  <h1>{{ i18n.t('home.welcome') }}</h1>
   <p class="subtitle">
-    Vos notes, organisées par dossiers et stockées en local sur votre machine.
-    Ouvrez un projet pour commencer.
+    {{ i18n.t('home.subtitle') }}
   </p>
 
   <div class="actions">
     @if (store.projectPath()) {
-      <a routerLink="/board" class="primary">Reprendre le projet</a>
+      <a routerLink="/board" class="primary">{{ i18n.t('home.resume') }}</a>
       <button type="button" (click)="openFolder()" [disabled]="opening()">
-        @if (opening()) { Ouverture… } @else { Ouvrir un autre projet }
+        @if (opening()) { {{ i18n.t('home.opening') }} } @else { {{ i18n.t('home.openOther') }} }
       </button>
-      <button type="button" (click)="closeProject()">Fermer</button>
+      <button type="button" (click)="closeProject()">{{ i18n.t('home.closeProject') }}</button>
     } @else {
       <button type="button" class="primary" (click)="openFolder()" [disabled]="opening()">
         <svg lucideFolderOpen [size]="17" aria-hidden="true"></svg>
-        @if (opening()) { Ouverture… } @else { Ouvrir un projet }
+        @if (opening()) { {{ i18n.t('home.opening') }} } @else { {{ i18n.t('home.open') }} }
       </button>
     }
   </div>
@@ -28,8 +27,8 @@
   @if (error()) {
     <p class="hint error">{{ error() }}</p>
   } @else if (store.projectPath()) {
-    <p class="hint">Projet ouvert : {{ store.projectPath() }}</p>
+    <p class="hint">{{ i18n.t('home.openIs', { path: store.projectPath() ?? '' }) }}</p>
   } @else {
-    <p class="hint">Aucun projet ouvert pour le moment.</p>
+    <p class="hint">{{ i18n.t('home.noProject') }}</p>
   }
 </section>

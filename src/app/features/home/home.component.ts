@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { LucideFolderOpen } from '@lucide/angular';
 import { open } from '@tauri-apps/plugin-dialog';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ProjectStore } from '../../core/services/project-store.service';
 
 /**
@@ -21,6 +22,7 @@ export class HomeComponent {
 
   constructor(
     readonly store: ProjectStore,
+    readonly i18n: I18nService,
     private router: Router,
   ) {}
 

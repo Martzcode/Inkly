@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { LucideFileText, LucideStar, LucideX } from '@lucide/angular';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ProjectStore } from '../../core/services/project-store.service';
 
 interface DragState {
@@ -41,6 +42,7 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   constructor(
     readonly store: ProjectStore,
+    readonly i18n: I18nService,
     private router: Router,
   ) {}
 
