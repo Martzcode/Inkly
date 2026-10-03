@@ -236,6 +236,36 @@ pub fn read_markdown_file(project_path: String, file_id: String) -> Result<Strin
         .map_err(|e| AppError::Internal(format!("cannot read note: {e}")))
 }
 
+/// Écrit le contenu Markdown d'une note du projet (racine uniquement).
+/// Le fichier est créé s'il n'existe pas encore.
+#[tauri::command]
+pub fn write_markdown_file(
+    project_path: String,
+    file_id: String,
+    content: String,
+) -> Result<(), AppError> {
+    validate_file_id(&file_id)?;
+    if content.len() > 1_048_576 {
+        return Err(AppError::InvalidInput("content is too large".into()));
+    }
+    let root = PathBuf::from(&project_path);
+    if !root.is_absolute() {
+        return Err(AppError::InvalidInput(
+            "project path must be absolute".into(),
+        ));
+    }
+    if !root.is_dir() {
+        return Err(AppError::InvalidInput("project folder not found".into()));
+    }
+    let full = root.join(&file_id);
+    // Garde-fou anti path-traversal : le chemin résolu doit rester dans le projet.
+    if !full.starts_with(&root) {
+        return Err(AppError::InvalidInput("file is outside the project".into()));
+    }
+    std::fs::write(&full, content)
+        .map_err(|e| AppError::Internal(format!("cannot write note: {e}")))
+}
+
 /// Un fichier Markdown contenant le mot recherché.
 #[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -429,6 +459,23 @@ mod tests {
         // MOT en majuscules matche aussi, vide ne matche rien.
         assert_eq!(search_notes(path.clone(), "MOT".into()).unwrap().len(), 2);
         assert!(search_notes(path, "   ".into()).unwrap().is_empty());
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn write_then_read_markdown_roundtrip() {
+        let dir = std::env::temp_dir().join(format!("inkly-write-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        let path = dir.to_string_lossy().to_string();
+        write_markdown_file(path.clone(), "note.md".into(), "# Titre\n\nTexte.".into()).unwrap();
+        let content = read_markdown_file(path.clone(), "note.md".into()).unwrap();
+        assert_eq!(content, "# Titre\n\nTexte.");
+
+        assert!(write_markdown_file(path.clone(), "../evil.md".into(), "x".into()).is_err());
+        assert!(write_markdown_file(path, "note.txt".into(), "x".into()).is_err());
 
         let _ = std::fs::remove_dir_all(&dir);
     }

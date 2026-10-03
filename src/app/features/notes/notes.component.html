@@ -25,17 +25,106 @@
   } @else if (loading()) {
     <section class="panel"><p class="muted">{{ i18n.t('notes.loading', { name: store.activeNoteId() ?? '' }) }}</p></section>
   } @else if (error()) {
-    <section class="panel"><p class="error">{{ error() }}</p></section>
+    <section class="panel">
+      <p class="error">{{ error() }}</p>
+      <button type="button" class="primary" (click)="retry()">{{ i18n.t('notes.retry') }}</button>
+    </section>
   } @else {
+    <div class="ribbon" role="toolbar" [attr.aria-label]="i18n.t('ribbon.toolbar')">
+      <div class="group">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('undo')" [attr.title]="i18n.t('ribbon.undo')" [attr.aria-label]="i18n.t('ribbon.undo')">
+          <svg lucideUndo2 [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('redo')" [attr.title]="i18n.t('ribbon.redo')" [attr.aria-label]="i18n.t('ribbon.redo')">
+          <svg lucideRedo2 [size]="16" aria-hidden="true"></svg>
+        </button>
+      </div>
+      <span class="sep" aria-hidden="true"></span>
+      <div class="group">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('bold')" [class.active]="isActive('bold')" [attr.title]="i18n.t('ribbon.bold')" [attr.aria-label]="i18n.t('ribbon.bold')">
+          <svg lucideBold [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('italic')" [class.active]="isActive('italic')" [attr.title]="i18n.t('ribbon.italic')" [attr.aria-label]="i18n.t('ribbon.italic')">
+          <svg lucideItalic [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('strikeThrough')" [class.active]="isActive('strikeThrough')" [attr.title]="i18n.t('ribbon.strike')" [attr.aria-label]="i18n.t('ribbon.strike')">
+          <svg lucideStrikethrough [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="wrapInlineCode()" [attr.title]="i18n.t('ribbon.codeInline')" [attr.aria-label]="i18n.t('ribbon.codeInline')">
+          <svg lucideCode [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('removeFormat')" [attr.title]="i18n.t('ribbon.clear')" [attr.aria-label]="i18n.t('ribbon.clear')">
+          <svg lucideRemoveFormatting [size]="16" aria-hidden="true"></svg>
+        </button>
+      </div>
+      <span class="sep" aria-hidden="true"></span>
+      <div class="group">
+        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('p')" [class.active]="activeBlock() === 'p'" [attr.title]="i18n.t('ribbon.paragraph')" [attr.aria-label]="i18n.t('ribbon.paragraph')">
+          <svg lucidePilcrow [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('h1')" [class.active]="activeBlock() === 'h1'" [attr.title]="i18n.t('ribbon.h1')" [attr.aria-label]="i18n.t('ribbon.h1')">
+          <svg lucideHeading1 [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('h2')" [class.active]="activeBlock() === 'h2'" [attr.title]="i18n.t('ribbon.h2')" [attr.aria-label]="i18n.t('ribbon.h2')">
+          <svg lucideHeading2 [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" class="text-btn" (mousedown)="$event.preventDefault()" (click)="formatBlock('h3')" [class.active]="activeBlock() === 'h3'" [attr.title]="i18n.t('ribbon.h3')" [attr.aria-label]="i18n.t('ribbon.h3')">
+          <svg lucideHeading3 [size]="16" aria-hidden="true"></svg>
+        </button>
+      </div>
+      <span class="sep" aria-hidden="true"></span>
+      <div class="group">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('insertUnorderedList')" [class.active]="isActive('insertUnorderedList')" [attr.title]="i18n.t('ribbon.bullet')" [attr.aria-label]="i18n.t('ribbon.bullet')">
+          <svg lucideList [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('insertOrderedList')" [class.active]="isActive('insertOrderedList')" [attr.title]="i18n.t('ribbon.numbered')" [attr.aria-label]="i18n.t('ribbon.numbered')">
+          <svg lucideListOrdered [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="formatBlock('blockquote')" [class.active]="activeBlock() === 'blockquote'" [attr.title]="i18n.t('ribbon.quote')" [attr.aria-label]="i18n.t('ribbon.quote')">
+          <svg lucideTextQuote [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="formatBlock('pre')" [class.active]="activeBlock() === 'pre'" [attr.title]="i18n.t('ribbon.codeBlock')" [attr.aria-label]="i18n.t('ribbon.codeBlock')">
+          <svg lucideCodeXml [size]="16" aria-hidden="true"></svg>
+        </button>
+      </div>
+      <span class="sep" aria-hidden="true"></span>
+      <div class="group">
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="insertLink()" [attr.title]="i18n.t('ribbon.link')" [attr.aria-label]="i18n.t('ribbon.link')">
+          <svg lucideLink [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('unlink')" [attr.title]="i18n.t('ribbon.unlink')" [attr.aria-label]="i18n.t('ribbon.unlink')">
+          <svg lucideLink2Off [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="exec('insertHorizontalRule')" [attr.title]="i18n.t('ribbon.hr')" [attr.aria-label]="i18n.t('ribbon.hr')">
+          <svg lucideMinus [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" (mousedown)="$event.preventDefault()" (click)="insertTable()" [attr.title]="i18n.t('ribbon.table')" [attr.aria-label]="i18n.t('ribbon.table')">
+          <svg lucideTable [size]="16" aria-hidden="true"></svg>
+        </button>
+      </div>
+    </div>
     <article class="note">
       <header class="note-head">
         <h2>{{ store.activeNoteId() }}</h2>
         <span class="badge">{{ i18n.t('notes.preview') }}</span>
+        <span class="save-status" aria-live="polite">
+          @if (saveState() === 'saving') { {{ i18n.t('notes.saving') }} }
+          @else if (saveState() === 'saved') { {{ i18n.t('notes.saved') }} }
+        </span>
         <a routerLink="/board" class="home-btn" [attr.aria-label]="i18n.t('notes.backCanvas')" [attr.title]="i18n.t('notes.backCanvas')">
           <svg lucideHouse [size]="16" aria-hidden="true"></svg>
         </a>
       </header>
-      <div class="rendered" [innerHTML]="html()"></div>
+      <div
+        #editor
+        class="page"
+        contenteditable="true"
+        spellcheck="true"
+        role="textbox"
+        aria-multiline="true"
+        [attr.aria-label]="store.activeNoteId()"
+        (input)="onEdit($event)"
+      ></div>
     </article>
   }
 }

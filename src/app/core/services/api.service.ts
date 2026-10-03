@@ -69,6 +69,10 @@ export class ApiService {
     return invoke<string>('read_markdown_file', { projectPath, fileId });
   }
 
+  writeMarkdownFile(projectPath: string, fileId: string, content: string): Promise<void> {
+    return invoke<void>('write_markdown_file', { projectPath, fileId, content });
+  }
+
   searchNotes(projectPath: string, query: string): Promise<SearchHit[]> {
     return invoke<SearchHit[]>('search_notes', { projectPath, query });
   }

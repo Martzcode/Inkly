@@ -27,6 +27,7 @@ pub fn run() {
             commands::project::load_canvas,
             commands::project::save_canvas,
             commands::project::read_markdown_file,
+            commands::project::write_markdown_file,
             commands::project::search_notes,
         ])
         .setup(|app| {
