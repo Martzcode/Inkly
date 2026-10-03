@@ -1,5 +1,6 @@
 import { Component, effect, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LucideHouse } from '@lucide/angular';
 import { marked } from 'marked';
 import { ApiService } from '../../core/services/api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -13,7 +14,7 @@ import { ProjectStore } from '../../core/services/project-store.service';
  */
 @Component({
   selector: 'app-notes',
-  imports: [RouterLink],
+  imports: [RouterLink, LucideHouse],
   templateUrl: './notes.component.html',
   styleUrl: './notes.component.css',
 })

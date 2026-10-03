@@ -23,12 +23,6 @@
         />
         {{ i18n.t('board.directed') }}
       </label>
-      <button type="button" class="primary" (click)="saveNow()" [disabled]="saveState() === 'saving'">
-        @if (saveState() === 'saving') { {{ i18n.t('board.saving') }} }
-        @else if (saveState() === 'saved') { {{ i18n.t('board.saved') }} }
-        @else if (saveState() === 'error') { {{ i18n.t('board.retry') }} }
-        @else { {{ i18n.t('board.save') }} @if (store.dirty()) { • } }
-      </button>
     </div>
   </section>
 

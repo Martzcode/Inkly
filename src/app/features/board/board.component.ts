@@ -26,7 +26,6 @@ export class BoardComponent implements OnInit, OnDestroy {
   readonly directedDefault = signal(true);
   readonly selectedSourceId = signal<string | null>(null);
   readonly selectedEdgeId = signal<string | null>(null);
-  readonly saveState = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   readonly selectedEdge = computed(() =>
     this.store.edges().find((e) => e.id === this.selectedEdgeId()) ?? null,
@@ -195,17 +194,13 @@ export class BoardComponent implements OnInit, OnDestroy {
     }
   }
 
-  async saveNow(): Promise<void> {
+  /** Sauvegarde auto (debounce) : aucun bouton, tout est persistant. */
+  private async saveNow(): Promise<void> {
     if (!this.store.projectPath()) return;
-    this.saveState.set('saving');
     try {
       await this.store.save();
-      this.saveState.set('saved');
-      setTimeout(() => {
-        if (this.saveState() === 'saved') this.saveState.set('idle');
-      }, 1500);
-    } catch {
-      this.saveState.set('error');
+    } catch (e) {
+      console.warn('Inkly: autosave failed', e);
     }
   }
 
