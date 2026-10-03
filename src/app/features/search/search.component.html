@@ -15,7 +15,7 @@
       (input)="onInput($event)"
     />
     @if (query()) {
-      <button type="button" class="clear" (click)="clear()" [attr.aria-label]="i18n.t('search.clearAria')">
+      <button type="button" class="clear" (click)="clear()" [attr.aria-label]="i18n.t('search.clearAria')" [attr.title]="i18n.t('search.clearAria')">
         <svg lucideX [size]="15" aria-hidden="true"></svg>
       </button>
     }
