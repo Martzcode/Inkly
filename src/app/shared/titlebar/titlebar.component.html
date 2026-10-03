@@ -4,6 +4,22 @@
     <span class="brand-name" data-tauri-drag-region>Inkly</span>
   </div>
 
+  <button
+    type="button"
+    class="theme-toggle"
+    (click)="theme.toggle()"
+    [attr.aria-label]="theme.theme() === 'light' ? i18n.t('theme.toDark') : i18n.t('theme.toLight')"
+    [attr.title]="theme.theme() === 'light' ? i18n.t('theme.toDark') : i18n.t('theme.toLight')"
+  >
+    @if (theme.theme() === 'light') {
+      <svg lucideMoon [size]="15" aria-hidden="true"></svg>
+    } @else {
+      <svg lucideSun [size]="15" aria-hidden="true"></svg>
+    }
+  </button>
+
+  <div class="spacer" data-tauri-drag-region></div>
+
   @if (isTauri()) {
     <div class="controls">
       <button type="button" class="ctl" (click)="minimize()" [attr.aria-label]="i18n.t('titlebar.minimize')" [attr.title]="i18n.t('titlebar.minimize')">

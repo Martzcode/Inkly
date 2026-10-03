@@ -1,7 +1,7 @@
 /* Design Inkly : aplats de couleur unis, clair/sombre via le système. */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   --bg: #f2f4f7;
   --surface: #ffffff;
@@ -25,25 +25,33 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #121419;
-    --surface: #1b1f26;
-    --surface-hover: #242a34;
-    --border: #2d333d;
-    --text: #f0f3f8;
-    --muted: #9aa3b2;
-    --accent: #4c8dff;
-    --accent-hover: #6aa3ff;
-    --accent-contrast: #0c1220;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.35);
-  }
+/* Thème sombre explicite (bascule manuelle, cf. ThemeService). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #121419;
+  --surface: #1b1f26;
+  --surface-hover: #242a34;
+  --border: #2d333d;
+  --text: #f0f3f8;
+  --muted: #9aa3b2;
+  --accent: #4c8dff;
+  --accent-hover: #6aa3ff;
+  --accent-contrast: #0c1220;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.35);
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+  /* Transition douce lors de la bascule clair/sombre.
+     Limitée aux propriétés de couleur : ni layout, ni positions. */
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    outline-color 0.25s ease;
 }
 
 html,

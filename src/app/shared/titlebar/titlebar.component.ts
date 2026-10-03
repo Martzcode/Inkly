@@ -1,8 +1,9 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { LucideCopy, LucideMinus, LucideSquare, LucideX } from '@lucide/angular';
+import { LucideCopy, LucideMinus, LucideMoon, LucideSquare, LucideSun, LucideX } from '@lucide/angular';
 import { isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 /**
  * Barre de titre personnalisée (fenêtre `decorations: false`).
@@ -12,7 +13,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
  */
 @Component({
   selector: 'app-titlebar',
-  imports: [LucideCopy, LucideMinus, LucideSquare, LucideX],
+  imports: [LucideCopy, LucideMinus, LucideMoon, LucideSquare, LucideSun, LucideX],
   templateUrl: './titlebar.component.html',
   styleUrl: './titlebar.component.css',
 })
@@ -20,7 +21,10 @@ export class TitlebarComponent implements OnInit {
   readonly isTauri = signal(false);
   readonly isMaximized = signal(false);
 
-  constructor(readonly i18n: I18nService) {}
+  constructor(
+    readonly i18n: I18nService,
+    readonly theme: ThemeService,
+  ) {}
 
   async ngOnInit(): Promise<void> {
     // Seul le runtime Tauri conditionne l'affichage des boutons.

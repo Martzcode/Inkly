@@ -96,6 +96,9 @@ const fr = {
   'settings.title': 'Paramètres',
   'settings.language': 'Langue',
   'settings.languageHint': "La langue s'applique immédiatement à toute l'application.",
+
+  'theme.toDark': 'Passer en mode sombre',
+  'theme.toLight': 'Passer en mode clair',
 } as const;
 
 export type DictKey = keyof typeof fr;
@@ -192,6 +195,9 @@ const en: Dict = {
   'settings.title': 'Settings',
   'settings.language': 'Language',
   'settings.languageHint': 'The language applies instantly across the app.',
+
+  'theme.toDark': 'Switch to dark mode',
+  'theme.toLight': 'Switch to light mode',
 };
 
 const es: Dict = {
@@ -284,6 +290,9 @@ const es: Dict = {
   'settings.title': 'Ajustes',
   'settings.language': 'Idioma',
   'settings.languageHint': 'El idioma se aplica al instante en toda la aplicación.',
+
+  'theme.toDark': 'Cambiar a modo oscuro',
+  'theme.toLight': 'Cambiar a modo claro',
 };
 
 const de: Dict = {
@@ -376,6 +385,9 @@ const de: Dict = {
   'settings.title': 'Einstellungen',
   'settings.language': 'Sprache',
   'settings.languageHint': 'Die Sprache wird sofort in der ganzen App übernommen.',
+
+  'theme.toDark': 'Zum dunklen Modus wechseln',
+  'theme.toLight': 'Zum hellen Modus wechseln',
 };
 
 export const dicts = { fr, en, es, de } as const;
