@@ -7,3 +7,4 @@
 
 pub mod app_info;
 pub mod greet;
+pub mod project;

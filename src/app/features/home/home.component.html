@@ -10,17 +10,21 @@
   <h1>Bienvenue sur Inkly</h1>
   <p class="subtitle">
     Vos notes, organisées par dossiers et stockées en local sur votre machine.
-    Ouvrez un dossier pour commencer.
+    Ouvrez un projet pour commencer.
   </p>
 
   <div class="actions">
-    <button type="button" class="primary" (click)="openFolder()">
+    <button type="button" class="primary" (click)="openFolder()" [disabled]="opening()">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
       </svg>
-      Ouvrir un dossier
+      @if (opening()) { Ouverture… } @else { Ouvrir un projet }
     </button>
   </div>
 
-  <p class="hint">Aucun dossier ouvert pour le moment.</p>
+  @if (error()) {
+    <p class="hint error">{{ error() }}</p>
+  } @else {
+    <p class="hint">Aucun projet ouvert pour le moment.</p>
+  }
 </section>

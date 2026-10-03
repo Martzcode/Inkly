@@ -1,0 +1,114 @@
+<!-- Icônes Lucide (lucide.dev), licence ISC. -->
+@if (!store.projectPath()) {
+  <section class="empty">
+    <p>Aucun projet ouvert.</p>
+    <a routerLink="/home" class="primary">Retour à l'accueil</a>
+  </section>
+} @else {
+  <section class="toolbar">
+    <div class="proj">
+      <a routerLink="/home" class="back" title="Retour">←</a>
+      <div>
+        <p class="eyebrow">Projet</p>
+        <h2 class="path" [title]="store.projectPath()">{{ store.projectPath() }}</h2>
+      </div>
+    </div>
+    <div class="tools">
+      <label class="toggle">
+        <input
+          type="checkbox"
+          [checked]="directedDefault()"
+          (change)="directedDefault.set($any($event.target).checked)"
+        />
+        Flèche avec pointe
+      </label>
+      <button type="button" class="primary" (click)="saveNow()" [disabled]="saveState() === 'saving'">
+        @if (saveState() === 'saving') { Enregistrement… }
+        @else if (saveState() === 'saved') { Enregistré ✓ }
+        @else if (saveState() === 'error') { Réessayer }
+        @else { Enregistrer @if (store.dirty()) { • } }
+      </button>
+    </div>
+  </section>
+
+  @if (selectedSourceId()) {
+    <p class="banner">
+      Cliquez sur un second fichier pour créer la liaison
+      ({{ directedDefault() ? 'avec pointe' : 'sans tête' }}).
+      <button type="button" (click)="cancelLinking()">Annuler</button>
+    </p>
+  }
+
+  @if (selectedEdge()) {
+    <p class="banner">
+      Liaison {{ selectedEdge()!.from }} → {{ selectedEdge()!.to }}
+      ({{ selectedEdge()!.directed ? 'avec pointe' : 'sans tête' }})
+      <button type="button" (click)="toggleSelectedEdge()">Inverser le style</button>
+      <button type="button" class="danger" (click)="deleteSelectedEdge()">Supprimer</button>
+    </p>
+  }
+
+  @if (store.loading()) {
+    <p class="hint">Chargement du projet…</p>
+  } @else if (store.nodes().length === 0) {
+    <p class="hint">Aucun fichier Markdown dans ce dossier. Ajoutez des fichiers <code>.md</code> à la racine.</p>
+  } @else {
+    <p class="hint">
+      Glissez les icônes pour organiser. Cliquez sur un fichier puis un autre pour les lier.
+      Cliquez sur un trait pour changer son style ou le supprimer.
+    </p>
+    <div class="canvas" (click)="selectedEdgeId.set(null)">
+      <svg class="edges" aria-hidden="true">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+          </marker>
+        </defs>
+        @for (edge of store.edges(); track edge.id) {
+          @let line = edgeLine(edge.id);
+          <!-- large zone cliquable invisible -->
+          <line
+            [attr.x1]="line.x1" [attr.y1]="line.y1"
+            [attr.x2]="line.x2" [attr.y2]="line.y2"
+            class="hit"
+            (click)="onEdgeClick(edge.id, $event)"
+          />
+          <line
+            [attr.x1]="line.x1" [attr.y1]="line.y1"
+            [attr.x2]="line.x2" [attr.y2]="line.y2"
+            class="link"
+            [class.selected]="selectedEdgeId() === edge.id"
+            [attr.marker-end]="edge.directed ? 'url(#arrow)' : null"
+          />
+        }
+      </svg>
+
+      @for (node of store.nodes(); track node.id) {
+        <div
+          class="node"
+          [class.selected]="selectedSourceId() === node.id"
+          [style.left.px]="node.x"
+          [style.top.px]="node.y"
+          (pointerdown)="onNodePointerDown($event, node.id)"
+          (pointermove)="onNodePointerMove($event, node.id)"
+          (pointerup)="onNodePointerUp()"
+          (click)="onNodeClick(node.id)"
+          role="button"
+          tabindex="0"
+          [attr.aria-label]="node.name"
+          [title]="node.name"
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <path d="M14 2v6h6" />
+            <path d="M9 13h6M9 17h4" />
+          </svg>
+          <span class="name">{{ fileLabel(node.name) }}</span>
+          <span class="badge">.md</span>
+        </div>
+      }
+    </div>
+  }
+}

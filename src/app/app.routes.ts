@@ -27,6 +27,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: "board",
+    loadComponent: () =>
+      import("./features/board/board.component").then((m) => m.BoardComponent),
+  },
+  {
     path: "settings",
     loadComponent: () =>
       import("./features/settings/settings.component").then(
