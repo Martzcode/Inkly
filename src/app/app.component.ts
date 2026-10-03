@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, HostListener } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { SidebarComponent } from "./shared/sidebar/sidebar.component";
 import { TitlebarComponent } from "./shared/titlebar/titlebar.component";
@@ -10,4 +10,13 @@ import { TitlebarComponent } from "./shared/titlebar/titlebar.component";
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.css",
 })
-export class AppComponent {}
+export class AppComponent {
+  /**
+   * Menu contextuel natif désactivé globalement.
+   * Un menu personnalisé sera branché plus tard.
+   */
+  @HostListener("contextmenu", ["$event"])
+  onContextMenu(event: MouseEvent): void {
+    event.preventDefault();
+  }
+}
