@@ -21,6 +21,27 @@
           <button type="button" (click)="choose(f.id)">{{ f.name }}</button>
         }
       </div>
+      <div class="new-note">
+        @if (!creating()) {
+          <button type="button" class="ghost-btn" (click)="startCreate()">+ {{ i18n.t('notes.newNote') }}</button>
+        } @else {
+          <input
+            type="text"
+            [value]="newName()"
+            (input)="newName.set($any($event.target).value)"
+            (keydown.enter)="confirmCreate()"
+            (keydown.escape)="cancelCreate()"
+            [placeholder]="i18n.t('notes.newPlaceholder')"
+            [attr.aria-label]="i18n.t('notes.newNote')"
+            maxlength="100"
+          />
+          <button type="button" class="primary-btn" (click)="confirmCreate()">{{ i18n.t('notes.create') }}</button>
+          <button type="button" class="ghost-btn" (click)="cancelCreate()">{{ i18n.t('notes.cancel') }}</button>
+        }
+      </div>
+      @if (error()) {
+        <p class="new-note-error">{{ error() }}</p>
+      }
     </section>
   } @else if (loading()) {
     <section class="panel"><p class="muted">{{ i18n.t('notes.loading', { name: store.activeNoteId() ?? '' }) }}</p></section>
@@ -111,6 +132,9 @@
           @if (saveState() === 'saving') { {{ i18n.t('notes.saving') }} }
           @else if (saveState() === 'saved') { {{ i18n.t('notes.saved') }} }
         </span>
+        <button type="button" class="home-btn" (click)="closeNote()" [attr.aria-label]="i18n.t('notes.closeNote')" [attr.title]="i18n.t('notes.closeNote')">
+          <svg lucideX [size]="16" aria-hidden="true"></svg>
+        </button>
         <a routerLink="/board" class="home-btn" [attr.aria-label]="i18n.t('notes.backCanvas')" [attr.title]="i18n.t('notes.backCanvas')">
           <svg lucideHouse [size]="16" aria-hidden="true"></svg>
         </a>

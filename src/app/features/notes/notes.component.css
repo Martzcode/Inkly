@@ -62,6 +62,67 @@
   background: var(--background);
 }
 
+.new-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.new-note input {
+  flex: 1;
+  min-width: 160px;
+  font: inherit;
+  font-size: 13.5px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+}
+
+.new-note input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.ghost-btn {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghost-btn:hover {
+  background: var(--background);
+}
+
+.primary-btn {
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.new-note-error {
+  color: #b3261e;
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+
 /* Ruban de mise en forme, style Docs/Office : groupes d'icônes
    séparés, bouton actif teinté, collant en haut de la page. */
 .ribbon {
@@ -192,7 +253,14 @@
   flex: none;
   border-radius: 8px;
   border: 1px solid var(--border);
+  background: transparent;
   color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.home-btn + .home-btn {
+  margin-left: 0;
 }
 
 .home-btn:hover {

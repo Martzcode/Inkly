@@ -22,6 +22,7 @@ import {
   LucideTable,
   LucideTextQuote,
   LucideUndo2,
+  LucideX,
 } from '@lucide/angular';
 import { marked } from 'marked';
 import TurndownService from 'turndown';
@@ -72,6 +73,7 @@ interface HistoryEntry {
     LucideTable,
     LucideTextQuote,
     LucideUndo2,
+    LucideX,
   ],
   templateUrl: './notes.component.html',
   styleUrl: './notes.component.css',
@@ -81,6 +83,9 @@ export class NotesComponent implements OnDestroy {
   readonly error = signal<string | null>(null);
   readonly dirty = signal(false);
   readonly saveState = signal<'idle' | 'saving' | 'saved'>('idle');
+  /** Création d'une note : saisie du nom en cours. */
+  readonly creating = signal(false);
+  readonly newName = signal('');
   /** États actifs (gras, liste…) selon la position du curseur. */
   readonly activeStates = signal<Record<string, boolean>>({});
   /** Bloc courant : p, h1, h2, h3, pre, blockquote… */
@@ -150,11 +155,41 @@ export class NotesComponent implements OnDestroy {
     this.store.openNote(id);
   }
 
+  /** Ferme la note (brouillon sauvegardé d'abord). */
+  async closeNote(): Promise<void> {
+    await this.flushDraft();
+    this.store.closeNote();
+  }
+
   /** Recharge la note après une erreur. */
   retry(): void {
     const projectPath = this.store.projectPath();
     const fileId = this.store.activeNoteId();
     if (projectPath && fileId) void this.load(projectPath, fileId);
+  }
+
+  startCreate(): void {
+    this.newName.set('');
+    this.error.set(null);
+    this.creating.set(true);
+  }
+
+  cancelCreate(): void {
+    this.creating.set(false);
+    this.newName.set('');
+  }
+
+  /** Crée la note puis l'ouvre en édition. */
+  async confirmCreate(): Promise<void> {
+    const name = this.newName().trim() || this.i18n.t('notes.untitled');
+    this.creating.set(false);
+    this.newName.set('');
+    try {
+      const id = await this.store.createNote(name);
+      this.store.openNote(id);
+    } catch (e) {
+      this.error.set(e instanceof Error ? e.message : String(e));
+    }
   }
 
   /** Frappe dans la page : mémorise + historique + sauvegarde auto. */

@@ -155,4 +155,51 @@ export class ProjectStore {
   openNote(id: string): void {
     this.activeNoteId.set(id);
   }
+
+  closeNote(): void {
+    this.activeNoteId.set(null);
+  }
+
+  /** Recharge la liste des fichiers (après création/suppression externe). */
+  async refreshFiles(): Promise<void> {
+    const path = this.projectPath();
+    if (!path) return;
+    this.loading.set(true);
+    try {
+      const files = await this.api.listMarkdownFiles(path);
+      this.files.set(files);
+      const known = new Set(files.map((f) => f.id));
+      this.favorites.update((list) => list.filter((id) => known.has(id)));
+      const active = this.activeNoteId();
+      if (active && !known.has(active)) this.activeNoteId.set(null);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Crée une note vide (`base.md`, `base 2.md`… si collision),
+   * rafraîchit la liste et retourne l'identifiant final.
+   */
+  async createNote(wanted: string): Promise<string> {
+    const path = this.projectPath();
+    if (!path) throw new Error('No project open');
+    let base = wanted
+      .trim()
+      .replace(/[/\\]+/g, '')
+      .replace(/\.\.+/g, '.')
+      .replace(/\.markdown$/i, '')
+      .replace(/\.md$/i, '')
+      .trim();
+    if (!base) base = 'note';
+    const taken = new Set(this.files().map((f) => f.id.toLowerCase()));
+    let candidate = `${base}.md`;
+    let n = 2;
+    while (taken.has(candidate.toLowerCase())) {
+      candidate = `${base} ${n++}.md`;
+    }
+    await this.api.writeMarkdownFile(path, candidate, '');
+    await this.refreshFiles();
+    return candidate;
+  }
 }
