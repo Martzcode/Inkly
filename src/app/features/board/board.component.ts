@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { LucideFileText, LucideStar, LucideX } from '@lucide/angular';
 import { ProjectStore } from '../../core/services/project-store.service';
 
 interface DragState {
@@ -15,7 +16,7 @@ interface DragState {
  */
 @Component({
   selector: 'app-board',
-  imports: [RouterLink],
+  imports: [RouterLink, LucideFileText, LucideStar, LucideX],
   templateUrl: './board.component.html',
   styleUrl: './board.component.css',
 })

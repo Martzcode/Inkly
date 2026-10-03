@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { LucideStar } from '@lucide/angular';
 import { ProjectStore } from '../../core/services/project-store.service';
 
 /**
@@ -9,7 +10,7 @@ import { ProjectStore } from '../../core/services/project-store.service';
  */
 @Component({
   selector: 'app-favorites',
-  imports: [RouterLink],
+  imports: [RouterLink, LucideStar],
   templateUrl: './favorites.component.html',
   styleUrl: './favorites.component.css',
 })

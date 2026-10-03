@@ -1,4 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
+import { LucideCopy, LucideMinus, LucideSquare, LucideX } from '@lucide/angular';
 import { isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
@@ -10,6 +11,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
  */
 @Component({
   selector: 'app-titlebar',
+  imports: [LucideCopy, LucideMinus, LucideSquare, LucideX],
   templateUrl: './titlebar.component.html',
   styleUrl: './titlebar.component.css',
 })

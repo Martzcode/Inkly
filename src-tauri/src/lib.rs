@@ -6,6 +6,10 @@
 mod commands;
 mod error;
 mod state;
+#[cfg(target_os = "linux")]
+mod zoom;
+#[cfg(target_os = "linux")]
+use tauri::Manager;
 
 pub use error::AppError;
 pub use state::AppState;
@@ -27,7 +31,18 @@ pub fn run() {
         .setup(|app| {
             tracing_init();
             log::info!("Inkly started (v{})", app.package_info().version);
+            // Tentative précoce (best-effort) : la webview n'est pas
+            // forcément réalisée, `on_page_load` prend le relais.
+            #[cfg(target_os = "linux")]
+            if let Some(main) = app.get_webview_window("main") {
+                zoom::disable_on_main_window(&main);
+            }
             Ok(())
+        })
+        .on_page_load(|webview, _| {
+            // Ici la webview est réalisée : le geste WebKit existe.
+            #[cfg(target_os = "linux")]
+            zoom::disable_on_webview(webview);
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

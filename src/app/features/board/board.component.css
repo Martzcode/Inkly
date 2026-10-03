@@ -260,10 +260,6 @@
   color: var(--accent);
 }
 
-.node-wrap .fav.active svg polygon {
-  fill: currentColor;
-}
-
 .node .name {
   font-size: 12px;
   font-weight: 600;

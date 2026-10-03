@@ -26,9 +26,7 @@
     @for (f of store.favoriteFiles(); track f.id) {
       <li class="fav-item">
         <button type="button" class="open" (click)="open(f.id)" [title]="f.name">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
+          <svg lucideStar [size]="16" fill="currentColor" aria-hidden="true"></svg>
           <span>{{ f.name }}</span>
         </button>
         <button type="button" class="remove" (click)="remove(f.id)" aria-label="Retirer des favoris">

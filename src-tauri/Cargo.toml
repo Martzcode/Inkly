@@ -29,6 +29,13 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt"] }
 tauri-plugin-dialog = "2"
 
+# Accès direct au WebKitWebView pour neutraliser le geste
+# de pincement natif (Linux uniquement, cf. `src/zoom.rs`).
+# Versions alignées sur celles de wry (résolution unique).
+[target.'cfg(target_os = "linux")'.dependencies]
+webkit2gtk = { version = "2.0", features = ["v2_38"] }
+gtk = "0.18"
+
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]

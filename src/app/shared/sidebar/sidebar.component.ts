@@ -1,13 +1,21 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import {
+  LucideDynamicIcon,
+  LucideFileText,
+  LucideHouse,
+  LucideNetwork,
+  LucideSearch,
+  LucideSettings,
+  LucideStar,
+  type LucideIcon,
+} from '@lucide/angular';
 import { ProjectStore } from '../../core/services/project-store.service';
-
-type NavIcon = 'home' | 'notes' | 'search' | 'star' | 'settings' | 'board';
 
 interface NavItem {
   label: string;
   route: string;
-  icon: NavIcon;
+  icon: LucideIcon;
 }
 
 /**
@@ -16,17 +24,19 @@ interface NavItem {
  */
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, LucideDynamicIcon],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
 })
 export class SidebarComponent {
   readonly mainItems: NavItem[] = [
-    { label: 'Accueil', route: '/home', icon: 'home' },
-    { label: 'Notes', route: '/notes', icon: 'notes' },
-    { label: 'Recherche', route: '/search', icon: 'search' },
-    { label: 'Favoris', route: '/favorites', icon: 'star' },
+    { label: 'Accueil', route: '/home', icon: LucideHouse },
+    { label: 'Notes', route: '/notes', icon: LucideFileText },
+    { label: 'Recherche', route: '/search', icon: LucideSearch },
+    { label: 'Favoris', route: '/favorites', icon: LucideStar },
   ];
+
+  readonly boardIcon = LucideNetwork;
 
   constructor(readonly store: ProjectStore) {}
 
@@ -35,6 +45,6 @@ export class SidebarComponent {
   }
 
   readonly bottomItems: NavItem[] = [
-    { label: 'Paramètres', route: '/settings', icon: 'settings' },
+    { label: 'Paramètres', route: '/settings', icon: LucideSettings },
   ];
 }

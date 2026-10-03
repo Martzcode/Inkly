@@ -1,9 +1,6 @@
-<!-- Icône Lucide (lucide.dev), licence ISC : usage commercial autorisé, sans attribution requise. -->
 <section class="card">
   <span class="welcome-icon" aria-hidden="true">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-    </svg>
+    <svg lucideFolderOpen [size]="26"></svg>
   </span>
 
   <p class="eyebrow">Inkly</p>
@@ -22,9 +19,7 @@
       <button type="button" (click)="closeProject()">Fermer</button>
     } @else {
       <button type="button" class="primary" (click)="openFolder()" [disabled]="opening()">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-        </svg>
+        <svg lucideFolderOpen [size]="17" aria-hidden="true"></svg>
         @if (opening()) { Ouverture… } @else { Ouvrir un projet }
       </button>
     }

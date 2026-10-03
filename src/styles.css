@@ -49,6 +49,10 @@
 html,
 body {
   height: 100%;
+  /* Pincement pour zoomer/dézoomer désactivé (tactile + trackpad),
+     défilement au doigt conservé. Géré par le moteur web lui-même :
+     identique sur Linux (WebKitGTK), Windows (WebView2) et macOS (WKWebView). */
+  touch-action: pan-x pan-y;
 }
 
 body {
