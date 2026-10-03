@@ -22,6 +22,7 @@ pub fn run() {
             commands::project::list_markdown_files,
             commands::project::load_canvas,
             commands::project::save_canvas,
+            commands::project::read_markdown_file,
         ])
         .setup(|app| {
             tracing_init();

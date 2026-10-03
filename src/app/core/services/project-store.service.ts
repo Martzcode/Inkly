@@ -19,6 +19,8 @@ export class ProjectStore {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly dirty = signal(false);
+  /** Note ouverte en lecture dans le menu Notes (double-clic canvas). */
+  readonly activeNoteId = signal<string | null>(null);
 
   readonly nodes = computed<BoardNode[]>(() => {
     const pos = this.positions();
@@ -48,6 +50,9 @@ export class ProjectStore {
       this.positions.set(canvas.nodes ?? {});
       this.edges.set(canvas.edges ?? []);
       this.dirty.set(false);
+      if (!files.some((f) => f.id === this.activeNoteId())) {
+        this.activeNoteId.set(null);
+      }
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : String(e));
       throw e;
@@ -115,5 +120,10 @@ export class ProjectStore {
     this.edges.set([]);
     this.dirty.set(false);
     this.error.set(null);
+    this.activeNoteId.set(null);
+  }
+
+  openNote(id: string): void {
+    this.activeNoteId.set(id);
   }
 }

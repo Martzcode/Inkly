@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ProjectStore } from '../../core/services/project-store.service';
 
-type NavIcon = 'home' | 'notes' | 'search' | 'star' | 'settings';
+type NavIcon = 'home' | 'notes' | 'search' | 'star' | 'settings' | 'board';
 
 interface NavItem {
   label: string;
@@ -26,6 +27,12 @@ export class SidebarComponent {
     { label: 'Recherche', route: '/search', icon: 'search' },
     { label: 'Favoris', route: '/favorites', icon: 'star' },
   ];
+
+  constructor(readonly store: ProjectStore) {}
+
+  get boardVisible(): boolean {
+    return this.store.projectPath() !== null;
+  }
 
   readonly bottomItems: NavItem[] = [
     { label: 'Paramètres', route: '/settings', icon: 'settings' },

@@ -50,16 +50,25 @@ export class BoardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.saveTimer) clearTimeout(this.saveTimer);
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    // Navigation sidebar : le projet reste ouvert en fond,
+    // on flush la sauvegarde en attente pour ne rien perdre.
+    if (this.store.dirty() && this.store.projectPath()) {
+      void this.store.save();
+    }
   }
 
-  // --- Liaisons (création par 2 clics) ---
+  // --- Liaisons (création par 2 clics) + ouverture note ---
 
-  onNodeClick(id: string): void {
+  onNodeClick(event: MouseEvent, id: string): void {
     if (this.dragMoved) {
       this.dragMoved = false;
       return; // clic issu d'un drag : ignorer
     }
+    if (event.detail > 1) return; // double-clic : géré par openNote, pas de liaison
     const source = this.selectedSourceId();
     if (!source) {
       this.selectedSourceId.set(id);
@@ -77,6 +86,14 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   cancelLinking(): void {
     this.selectedSourceId.set(null);
+  }
+
+  /** Double-clic : ouvre la note en lecture dans le menu Notes. */
+  openNote(id: string): void {
+    this.selectedSourceId.set(null);
+    this.dragMoved = false;
+    this.store.openNote(id);
+    void this.router.navigate(['/notes']);
   }
 
   onEdgeClick(id: string, event: MouseEvent): void {
@@ -152,7 +169,16 @@ export class BoardComponent implements OnInit, OnDestroy {
     };
   }
 
-  // --- Sauvegarde ---
+  // --- Sauvegarde / fermeture ---
+
+  async closeProject(): Promise<void> {
+    try {
+      if (this.store.dirty()) await this.store.save();
+    } finally {
+      this.store.close();
+      await this.router.navigate(['/home']);
+    }
+  }
 
   async saveNow(): Promise<void> {
     if (!this.store.projectPath()) return;

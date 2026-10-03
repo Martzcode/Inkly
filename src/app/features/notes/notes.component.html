@@ -1,4 +1,55 @@
-<section class="panel">
-  <h2>Notes</h2>
-  <p>Vos notes apparaîtront ici. Page en cours de construction.</p>
-</section>
+<!-- Lecture seule : Markdown rendu, jamais de syntaxe brute. -->
+@if (!store.projectPath()) {
+  <section class="panel">
+    <h2>Notes</h2>
+    <p class="muted">Aucun projet ouvert. Ouvrez un projet depuis l'accueil, puis double-cliquez sur un fichier.</p>
+    <a routerLink="/home" class="primary">Aller à l'accueil</a>
+  </section>
+} @else if (store.files().length === 0) {
+  <section class="panel">
+    <h2>Notes</h2>
+    <p class="muted">Aucun fichier Markdown dans ce projet.</p>
+    <a routerLink="/board" class="primary">Retour au canvas</a>
+  </section>
+} @else {
+  <section class="toolbar">
+    <div class="file-picker">
+      <label for="note-select">Note</label>
+      <select
+        id="note-select"
+        [value]="store.activeNoteId() ?? ''"
+        (change)="choose($any($event.target).value)"
+      >
+        <option value="" disabled>Choisir une note…</option>
+        @for (f of store.files(); track f.id) {
+          <option [value]="f.id" [selected]="f.id === store.activeNoteId()">{{ f.name }}</option>
+        }
+      </select>
+    </div>
+    <a routerLink="/board" class="ghost">Retour au canvas</a>
+  </section>
+
+  @if (!store.activeNoteId()) {
+    <section class="panel">
+      <h2>{{ store.files().length }} notes</h2>
+      <p class="muted">Double-cliquez sur un fichier du canvas, ou choisissez une note ci-dessus.</p>
+      <div class="file-list">
+        @for (f of store.files(); track f.id) {
+          <button type="button" (click)="choose(f.id)">{{ f.name }}</button>
+        }
+      </div>
+    </section>
+  } @else if (loading()) {
+    <section class="panel"><p class="muted">Chargement de {{ store.activeNoteId() }}…</p></section>
+  } @else if (error()) {
+    <section class="panel"><p class="error">{{ error() }}</p></section>
+  } @else {
+    <article class="note">
+      <header class="note-head">
+        <h2>{{ store.activeNoteId() }}</h2>
+        <span class="badge">aperçu</span>
+      </header>
+      <div class="rendered" [innerHTML]="html()"></div>
+    </article>
+  }
+}

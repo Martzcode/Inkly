@@ -1,5 +1,5 @@
 import { Component, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { open } from '@tauri-apps/plugin-dialog';
 import { ProjectStore } from '../../core/services/project-store.service';
 
@@ -10,6 +10,7 @@ import { ProjectStore } from '../../core/services/project-store.service';
  */
 @Component({
   selector: 'app-home',
+  imports: [RouterLink],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
@@ -18,7 +19,7 @@ export class HomeComponent {
   readonly error = signal<string | null>(null);
 
   constructor(
-    private store: ProjectStore,
+    readonly store: ProjectStore,
     private router: Router,
   ) {}
 
@@ -37,6 +38,14 @@ export class HomeComponent {
       this.error.set(e instanceof Error ? e.message : String(e));
     } finally {
       this.opening.set(false);
+    }
+  }
+
+  async closeProject(): Promise<void> {
+    try {
+      if (this.store.dirty()) await this.store.save();
+    } finally {
+      this.store.close();
     }
   }
 }

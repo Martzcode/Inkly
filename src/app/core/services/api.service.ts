@@ -56,4 +56,8 @@ export class ApiService {
   saveCanvas(projectPath: string, canvas: CanvasDoc): Promise<void> {
     return invoke<void>('save_canvas', { projectPath, canvas });
   }
+
+  readMarkdownFile(projectPath: string, fileId: string): Promise<string> {
+    return invoke<string>('read_markdown_file', { projectPath, fileId });
+  }
 }

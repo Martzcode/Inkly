@@ -7,7 +7,12 @@
 } @else {
   <section class="toolbar">
     <div class="proj">
-      <a routerLink="/home" class="back" title="Retour">←</a>
+      <button type="button" class="close" title="Fermer le projet" aria-label="Fermer le projet" (click)="closeProject()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
+      </button>
       <div>
         <p class="eyebrow">Projet</p>
         <h2 class="path" [title]="store.projectPath()">{{ store.projectPath() }}</h2>
@@ -31,23 +36,6 @@
     </div>
   </section>
 
-  @if (selectedSourceId()) {
-    <p class="banner">
-      Cliquez sur un second fichier pour créer la liaison
-      ({{ directedDefault() ? 'avec pointe' : 'sans tête' }}).
-      <button type="button" (click)="cancelLinking()">Annuler</button>
-    </p>
-  }
-
-  @if (selectedEdge()) {
-    <p class="banner">
-      Liaison {{ selectedEdge()!.from }} → {{ selectedEdge()!.to }}
-      ({{ selectedEdge()!.directed ? 'avec pointe' : 'sans tête' }})
-      <button type="button" (click)="toggleSelectedEdge()">Inverser le style</button>
-      <button type="button" class="danger" (click)="deleteSelectedEdge()">Supprimer</button>
-    </p>
-  }
-
   @if (store.loading()) {
     <p class="hint">Chargement du projet…</p>
   } @else if (store.nodes().length === 0) {
@@ -55,8 +43,26 @@
   } @else {
     <p class="hint">
       Glissez les icônes pour organiser. Cliquez sur un fichier puis un autre pour les lier.
-      Cliquez sur un trait pour changer son style ou le supprimer.
+      Double-cliquez pour ouvrir la note. Cliquez sur un trait pour changer son style ou le supprimer.
     </p>
+    <div class="canvas-wrap">
+      @if (selectedSourceId()) {
+        <p class="banner overlay">
+          Cliquez sur un second fichier pour créer la liaison
+          ({{ directedDefault() ? 'avec pointe' : 'sans tête' }}).
+          <button type="button" (click)="cancelLinking()">Annuler</button>
+        </p>
+      }
+
+      @if (selectedEdge()) {
+        <p class="banner overlay">
+          Liaison {{ selectedEdge()!.from }} → {{ selectedEdge()!.to }}
+          ({{ selectedEdge()!.directed ? 'avec pointe' : 'sans tête' }})
+          <button type="button" (click)="toggleSelectedEdge()">Inverser le style</button>
+          <button type="button" class="danger" (click)="deleteSelectedEdge()">Supprimer</button>
+        </p>
+      }
+
     <div class="canvas" (click)="selectedEdgeId.set(null)">
       <svg class="edges" aria-hidden="true">
         <defs>
@@ -93,7 +99,9 @@
           (pointerdown)="onNodePointerDown($event, node.id)"
           (pointermove)="onNodePointerMove($event, node.id)"
           (pointerup)="onNodePointerUp()"
-          (click)="onNodeClick(node.id)"
+          (click)="onNodeClick($event, node.id)"
+          (dblclick)="openNote(node.id)"
+          (keydown.enter)="openNote(node.id)"
           role="button"
           tabindex="0"
           [attr.aria-label]="node.name"
@@ -109,6 +117,7 @@
           <span class="badge">.md</span>
         </div>
       }
+    </div>
     </div>
   }
 }

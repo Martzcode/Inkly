@@ -178,6 +178,52 @@ pub fn save_canvas(project_path: String, canvas: CanvasDoc) -> Result<(), AppErr
     Ok(())
 }
 
+/// Valide un identifiant de fichier (nom simple, sans chemin).
+fn validate_file_id(file_id: &str) -> Result<(), AppError> {
+    if file_id.is_empty() || file_id.len() > 255 {
+        return Err(AppError::InvalidInput("invalid file id".into()));
+    }
+    if file_id.contains('/') || file_id.contains('\\') || file_id.contains("..") {
+        return Err(AppError::InvalidInput(
+            "file id must be a plain file name".into(),
+        ));
+    }
+    if !is_markdown(Path::new(file_id)) {
+        return Err(AppError::InvalidInput(
+            "only markdown files can be opened".into(),
+        ));
+    }
+    Ok(())
+}
+
+/// Lit le contenu brut d'une note Markdown du projet (racine uniquement).
+#[tauri::command]
+pub fn read_markdown_file(project_path: String, file_id: String) -> Result<String, AppError> {
+    validate_file_id(&file_id)?;
+    let root = PathBuf::from(&project_path);
+    if !root.is_absolute() {
+        return Err(AppError::InvalidInput(
+            "project path must be absolute".into(),
+        ));
+    }
+    let full = root.join(&file_id);
+    // Garde-fou anti path-traversal : le chemin résolu doit rester dans le projet.
+    if !full.starts_with(&root) {
+        return Err(AppError::InvalidInput("file is outside the project".into()));
+    }
+    let meta = std::fs::metadata(&full)
+        .map_err(|_| AppError::InvalidInput("file not found".into()))?;
+    if !meta.is_file() {
+        return Err(AppError::InvalidInput("file not found".into()));
+    }
+    // Limite v1 : 1 Mio de texte.
+    if meta.len() > 1_048_576 {
+        return Err(AppError::InvalidInput("file is too large".into()));
+    }
+    std::fs::read_to_string(&full)
+        .map_err(|e| AppError::Internal(format!("cannot read note: {e}")))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -245,6 +291,25 @@ mod tests {
         let loaded =
             load_canvas(dir.to_string_lossy().to_string()).unwrap();
         assert_eq!(loaded, CanvasDoc::default());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn read_markdown_file_roundtrip_and_rejections() {
+        let dir = std::env::temp_dir().join(format!("inkly-read-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("hello.md"), "# Salut\n\n**gras**").unwrap();
+        std::fs::write(dir.join("other.txt"), "nope").unwrap();
+
+        let path = dir.to_string_lossy().to_string();
+        let content = read_markdown_file(path.clone(), "hello.md".into()).unwrap();
+        assert!(content.contains("**gras**"));
+
+        assert!(read_markdown_file(path.clone(), "../evil.md".into()).is_err());
+        assert!(read_markdown_file(path.clone(), "other.txt".into()).is_err());
+        assert!(read_markdown_file(path.clone(), "missing.md".into()).is_err());
+
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

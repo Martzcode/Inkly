@@ -14,16 +14,26 @@
   </p>
 
   <div class="actions">
-    <button type="button" class="primary" (click)="openFolder()" [disabled]="opening()">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-      </svg>
-      @if (opening()) { Ouverture… } @else { Ouvrir un projet }
-    </button>
+    @if (store.projectPath()) {
+      <a routerLink="/board" class="primary">Reprendre le projet</a>
+      <button type="button" (click)="openFolder()" [disabled]="opening()">
+        @if (opening()) { Ouverture… } @else { Ouvrir un autre projet }
+      </button>
+      <button type="button" (click)="closeProject()">Fermer</button>
+    } @else {
+      <button type="button" class="primary" (click)="openFolder()" [disabled]="opening()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+        </svg>
+        @if (opening()) { Ouverture… } @else { Ouvrir un projet }
+      </button>
+    }
   </div>
 
   @if (error()) {
     <p class="hint error">{{ error() }}</p>
+  } @else if (store.projectPath()) {
+    <p class="hint">Projet ouvert : {{ store.projectPath() }}</p>
   } @else {
     <p class="hint">Aucun projet ouvert pour le moment.</p>
   }
