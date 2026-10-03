@@ -1,4 +1,53 @@
-<section class="panel">
-  <h2>Recherche</h2>
-  <p>La recherche dans vos notes arrivera ici. Page en cours de construction.</p>
-</section>
+@if (!store.projectPath()) {
+  <section class="panel">
+    <h2>Recherche</h2>
+    <p class="muted">Aucun projet ouvert. Ouvrez un projet pour rechercher dans vos notes.</p>
+    <a routerLink="/home" class="primary">Aller à l'accueil</a>
+  </section>
+} @else {
+  <section class="searchbar">
+    <svg lucideSearch [size]="17" aria-hidden="true"></svg>
+    <input
+      type="search"
+      placeholder="Rechercher un mot dans les notes…"
+      aria-label="Rechercher dans les notes"
+      [value]="query()"
+      (input)="onInput($event)"
+    />
+    @if (query()) {
+      <button type="button" class="clear" (click)="clear()" aria-label="Effacer la recherche">
+        <svg lucideX [size]="15" aria-hidden="true"></svg>
+      </button>
+    }
+  </section>
+
+  @if (error()) {
+    <section class="panel"><p class="error">{{ error() }}</p></section>
+  } @else if (!query().trim()) {
+    <p class="hint">Tapez un mot ci-dessus : la recherche est insensible à la casse.</p>
+  } @else if (searching() && !searched()) {
+    <p class="hint">Recherche en cours…</p>
+  } @else if (searched() && hits().length === 0) {
+    <p class="hint">Aucune note ne contient « {{ query().trim() }} ».</p>
+  } @else if (hits().length > 0) {
+    <p class="hint">
+      {{ hits().length }} note(s) contiennent « {{ query().trim() }} »
+      @if (searching()) { <span class="refresh">(actualisation…)</span> }
+    </p>
+    <ul class="results">
+      @for (hit of hits(); track hit.id) {
+        <li>
+          <button type="button" class="hit" (click)="open(hit.id)" [title]="hit.name">
+            <span class="head">
+              <span class="name">{{ hit.name }}</span>
+              <span class="count">{{ hit.matchCount }} occurrence(s)</span>
+            </span>
+            @if (hit.excerpt) {
+              <span class="excerpt">{{ hit.excerpt }}</span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+  }
+}

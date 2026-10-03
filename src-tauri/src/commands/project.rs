@@ -236,6 +236,85 @@ pub fn read_markdown_file(project_path: String, file_id: String) -> Result<Strin
         .map_err(|e| AppError::Internal(format!("cannot read note: {e}")))
 }
 
+/// Un fichier Markdown contenant le mot recherché.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchHit {
+    pub id: String,
+    pub name: String,
+    /// Nombre d'occurrences (insensible à la casse).
+    pub match_count: usize,
+    /// Première ligne contenant le mot, tronquée (aperçu).
+    pub excerpt: String,
+}
+
+/// Recherche un mot dans les notes Markdown du projet :
+/// contenu ET nom de fichier. Insensible à la casse,
+/// racine du dossier uniquement.
+#[tauri::command]
+pub fn search_notes(project_path: String, query: String) -> Result<Vec<SearchHit>, AppError> {
+    let needle = query.trim().to_lowercase();
+    if needle.is_empty() {
+        return Ok(Vec::new());
+    }
+    if needle.len() > 200 {
+        return Err(AppError::InvalidInput("query is too long".into()));
+    }
+    let root = PathBuf::from(&project_path);
+    if !root.is_absolute() {
+        return Err(AppError::InvalidInput(
+            "project path must be absolute".into(),
+        ));
+    }
+    let entries = std::fs::read_dir(&root)
+        .map_err(|e| AppError::InvalidInput(format!("cannot read project folder: {e}")))?;
+
+    let mut names: Vec<String> = entries
+        .filter_map(|e| e.ok())
+        .map(|e| e.path())
+        .filter(|p| p.is_file() && is_markdown(p))
+        .filter_map(|p| p.file_name().and_then(|n| n.to_str()).map(str::to_string))
+        .collect();
+    names.sort_by(|a, b| a.to_lowercase().cmp(&b.to_lowercase()));
+
+    let mut hits = Vec::new();
+    for name in names {
+        let full = root.join(&name);
+        // Sécurité + robustesse : on ignore les fichiers illisibles / trop gros.
+        let content = match std::fs::metadata(&full) {
+            Ok(meta) if meta.is_file() && meta.len() <= 1_048_576 => {
+                std::fs::read_to_string(&full).unwrap_or_default()
+            }
+            _ => continue,
+        };
+        let lowered = content.to_lowercase();
+        let name_hits = name.to_lowercase().matches(needle.as_str()).count();
+        let match_count = lowered.matches(needle.as_str()).count() + name_hits;
+        if match_count == 0 {
+            continue;
+        }
+        let excerpt = content
+            .lines()
+            .find(|line| line.to_lowercase().contains(needle.as_str()))
+            .map(|line| {
+                let trimmed = line.trim();
+                if trimmed.chars().count() > 160 {
+                    format!("{}…", trimmed.chars().take(160).collect::<String>())
+                } else {
+                    trimmed.to_string()
+                }
+            })
+            .unwrap_or_default();
+        hits.push(SearchHit {
+            id: name.clone(),
+            name,
+            match_count,
+            excerpt,
+        });
+    }
+    Ok(hits)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -323,6 +402,33 @@ mod tests {
         assert!(read_markdown_file(path.clone(), "../evil.md".into()).is_err());
         assert!(read_markdown_file(path.clone(), "other.txt".into()).is_err());
         assert!(read_markdown_file(path.clone(), "missing.md".into()).is_err());
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn search_notes_is_case_insensitive() {
+        let dir = std::env::temp_dir().join(format!("inkly-search-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("a.md"), "# Projet\n\nUn MOT important ici.").unwrap();
+        std::fs::write(dir.join("b.md"), "rien à voir").unwrap();
+        std::fs::write(dir.join("rapport-mot.md"), "contenu neutre").unwrap();
+        std::fs::write(dir.join("ignore.txt"), "mot partout").unwrap();
+
+        let path = dir.to_string_lossy().to_string();
+        let hits = search_notes(path.clone(), "mot".into()).unwrap();
+        assert_eq!(hits.len(), 2);
+        assert_eq!(hits[0].id, "a.md");
+        assert_eq!(hits[0].match_count, 1);
+        assert!(hits[0].excerpt.to_lowercase().contains("mot"));
+        // Match par nom de fichier uniquement : pas d'extrait de contenu.
+        assert_eq!(hits[1].id, "rapport-mot.md");
+        assert!(hits[1].excerpt.is_empty());
+
+        // MOT en majuscules matche aussi, vide ne matche rien.
+        assert_eq!(search_notes(path.clone(), "MOT".into()).unwrap().len(), 2);
+        assert!(search_notes(path, "   ".into()).unwrap().is_empty());
 
         let _ = std::fs::remove_dir_all(&dir);
     }

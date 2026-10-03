@@ -31,6 +31,13 @@ export interface CanvasDoc {
   favorites: string[];
 }
 
+export interface SearchHit {
+  id: string;
+  name: string;
+  matchCount: number;
+  excerpt: string;
+}
+
 /**
  * Couche d'accès au backend Rust (Tauri commands).
  * Toute invocation `invoke()` doit passer par ici — jamais
@@ -60,5 +67,9 @@ export class ApiService {
 
   readMarkdownFile(projectPath: string, fileId: string): Promise<string> {
     return invoke<string>('read_markdown_file', { projectPath, fileId });
+  }
+
+  searchNotes(projectPath: string, query: string): Promise<SearchHit[]> {
+    return invoke<SearchHit[]>('search_notes', { projectPath, query });
   }
 }
