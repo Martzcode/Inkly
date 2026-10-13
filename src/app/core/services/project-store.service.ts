@@ -1,5 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { ApiService, CanvasDoc, CanvasEdge, ProjectFile } from './api.service';
+import { ApiService, CanvasDoc, CanvasEdge, EdgeStyle, ProjectFile, edgeStyle } from './api.service';
 
 export interface BoardNode extends ProjectFile {
   x: number;
@@ -82,12 +82,18 @@ export class ProjectStore {
     this.dirty.set(true);
   }
 
-  addEdge(from: string, to: string, directed: boolean): CanvasEdge | null {
+  addEdge(from: string, to: string, style: EdgeStyle): CanvasEdge | null {
     if (from === to) return null;
-    const exists = this.edges().some((e) =>
-      e.directed
-        ? e.from === from && e.to === to && e.directed === directed
-        : (e.from === from && e.to === to) || (e.from === to && e.to === from),
+    const directed = style !== 0;
+    const doubleHeaded = style === 2;
+    // Simple et double : symétriques, comparées sans ordre (a↔b == b↔a).
+    // Unique : orientée, comparée dans l'ordre.
+    const samePair = (e: CanvasEdge): boolean =>
+      style === 1
+        ? e.from === from && e.to === to
+        : (e.from === from && e.to === to) || (e.from === to && e.to === from);
+    const exists = this.edges().some(
+      (e) => edgeStyle(e) === style && samePair(e),
     );
     if (exists) return null;
     const edge: CanvasEdge = {
@@ -95,6 +101,7 @@ export class ProjectStore {
       from,
       to,
       directed,
+      doubleHeaded,
     };
     this.edges.update((list) => [...list, edge]);
     this.dirty.set(true);
@@ -106,9 +113,14 @@ export class ProjectStore {
     this.dirty.set(true);
   }
 
-  toggleEdgeDirection(id: string): void {
+  /** Fait cycler une liaison : simple → une pointe → deux pointes → simple. */
+  cycleEdgeStyle(id: string): void {
     this.edges.update((list) =>
-      list.map((e) => (e.id === id ? { ...e, directed: !e.directed } : e)),
+      list.map((e) => {
+        if (e.id !== id) return e;
+        const next = ((edgeStyle(e) + 1) % 3) as EdgeStyle;
+        return { ...e, directed: next !== 0, doubleHeaded: next === 2 };
+      }),
     );
     this.dirty.set(true);
   }

@@ -17,11 +17,22 @@ export interface NodePosition {
   y: number;
 }
 
+/** Style de liaison : 0 = courbe simple, 1 = une pointe, 2 = deux pointes. */
+export type EdgeStyle = 0 | 1 | 2;
+
 export interface CanvasEdge {
   id: string;
   from: string;
   to: string;
   directed: boolean;
+  /** Deux pointes (sans effet si `directed` est faux). Absent des anciens canvas (= simple). */
+  doubleHeaded?: boolean;
+}
+
+/** Dérive le style d'une liaison (compatible anciens canvas sans `doubleHeaded`). */
+export function edgeStyle(edge: Pick<CanvasEdge, 'directed' | 'doubleHeaded'>): EdgeStyle {
+  if (!edge.directed) return 0;
+  return edge.doubleHeaded ? 2 : 1;
 }
 
 export interface CanvasDoc {

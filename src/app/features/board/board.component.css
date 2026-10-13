@@ -73,14 +73,156 @@
   gap: 14px;
 }
 
-.toggle {
+/* Bouton « nouvelle note » : clic = coin haut gauche,
+   glisser-déposer = à la position déposée. */
+.new-note-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: 13px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
   color: var(--muted);
+  padding: 0;
+  font: inherit;
+  cursor: grab;
+  touch-action: none;
+  flex: none;
+}
+
+.new-note-btn:hover {
+  background: var(--surface-hover);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.new-note-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Fantôme sous le curseur pendant le glisser depuis le bouton. */
+.drag-ghost {
+  position: fixed;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Liste déroulante du style de liaison : bouton + menu d'aperçus
+   (courbe simple / une pointe / deux pointes), sans texte. */
+.style-select {
+  position: relative;
+}
+
+.style-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px 8px;
+  font: inherit;
   cursor: pointer;
-  user-select: none;
+}
+
+.style-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.style-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+  z-index: 29;
+}
+
+.style-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+}
+
+.style-menu button {
+  display: flex;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.style-menu button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.style-menu button.active {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.style-menu button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Mini-aperçu du style dans les bannières (cliquable : style suivant). */
+.style-mini {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 7px;
+  padding: 2px 6px;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.style-mini:hover {
+  border-color: var(--accent);
+}
+
+.style-mini:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .primary {
@@ -176,6 +318,7 @@
 }
 
 .link {
+  fill: none;
   stroke: currentColor;
   stroke-width: 2;
   pointer-events: none;
@@ -186,6 +329,7 @@
 }
 
 .hit {
+  fill: none;
   stroke: transparent;
   stroke-width: 16;
   pointer-events: stroke;
@@ -227,6 +371,11 @@
   border-color: var(--accent);
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Dernière note créée : reste au-dessus en cas de chevauchement. */
+.node-wrap.is-top {
+  z-index: 5;
 }
 
 /* Étoile hors du flux flex : sœur de .node, jamais enfant.

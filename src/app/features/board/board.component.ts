@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, computed, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { LucideFileText, LucideStar, LucideX } from '@lucide/angular';
+import { LucideChevronDown, LucideFilePlus, LucideFileText, LucideStar, LucideX } from '@lucide/angular';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { EdgeStyle, edgeStyle } from '../../core/services/api.service';
 import { ProjectStore } from '../../core/services/project-store.service';
+import { EdgePreviewComponent } from '../../shared/edge-preview/edge-preview.component';
 
 interface DragState {
   id: string;
@@ -12,18 +14,21 @@ interface DragState {
 
 /**
  * Canvas du projet : icônes Markdown déplaçables + liaisons
- * façon mind-mapping (trait simple ou flèche avec pointe).
+ * façon mind-mapping (courbe simple, une ou deux pointes).
  * Persistance auto dans `<projet>/.inkly/canvas.json`.
  */
 @Component({
   selector: 'app-board',
-  imports: [RouterLink, LucideFileText, LucideStar, LucideX],
+  imports: [RouterLink, EdgePreviewComponent, LucideChevronDown, LucideFilePlus, LucideFileText, LucideStar, LucideX],
   templateUrl: './board.component.html',
   styleUrl: './board.component.css',
 })
 export class BoardComponent implements OnInit, OnDestroy {
-  /** Nouveau lien créé avec une pointe (true) ou simple trait (false). */
-  readonly directedDefault = signal(true);
+  /** Styles de liaison proposés : simple, une pointe, deux pointes. */
+  readonly edgeStyles: EdgeStyle[] = [0, 1, 2];
+  /** Style appliqué aux nouvelles liaisons (choisi dans la liste déroulante). */
+  readonly styleDefault = signal<EdgeStyle>(1);
+  readonly styleMenuOpen = signal(false);
   readonly selectedSourceId = signal<string | null>(null);
   readonly selectedEdgeId = signal<string | null>(null);
 
@@ -34,6 +39,13 @@ export class BoardComponent implements OnInit, OnDestroy {
   private drag: DragState | null = null;
   private dragMoved = false;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Fantôme sous le curseur pendant le glisser depuis le bouton « nouvelle note ». */
+  readonly dragNew = signal<{ x: number; y: number } | null>(null);
+  private newDragStart: { x: number; y: number } | null = null;
+  private newDragging = false;
+
+  @ViewChild('canvas') canvasRef?: ElementRef<HTMLElement>;
 
   // Taille carte fichier (doit matcher le CSS).
   private readonly nodeW = 124;
@@ -81,7 +93,7 @@ export class BoardComponent implements OnInit, OnDestroy {
       this.selectedSourceId.set(null);
       return;
     }
-    this.store.addEdge(source, id, this.directedDefault());
+    this.store.addEdge(source, id, this.styleDefault());
     this.selectedSourceId.set(null);
     this.scheduleSave();
   }
@@ -110,6 +122,80 @@ export class BoardComponent implements OnInit, OnDestroy {
     return this.store.isFavorite(id);
   }
 
+  // --- Création de note (clic = coin haut gauche, drop = à la position) ---
+
+  onNewPointerDown(event: PointerEvent): void {
+    this.newDragStart = { x: event.clientX, y: event.clientY };
+    this.newDragging = false;
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+
+  onNewPointerMove(event: PointerEvent): void {
+    if (!this.newDragStart) return;
+    if (!this.newDragging) {
+      const moved = Math.hypot(event.clientX - this.newDragStart.x, event.clientY - this.newDragStart.y);
+      if (moved <= 6) return;
+      this.newDragging = true;
+    }
+    this.dragNew.set({ x: event.clientX, y: event.clientY });
+  }
+
+  async onNewPointerUp(event: PointerEvent): Promise<void> {
+    const wasDragging = this.newDragging;
+    this.newDragStart = null;
+    this.newDragging = false;
+    this.dragNew.set(null);
+    if (wasDragging) {
+      const el = this.canvasRef?.nativeElement;
+      if (el) {
+        const r = el.getBoundingClientRect();
+        if (
+          event.clientX >= r.left &&
+          event.clientX <= r.right &&
+          event.clientY >= r.top &&
+          event.clientY <= r.bottom
+        ) {
+          await this.createNoteAt(
+            Math.max(0, Math.round(event.clientX - r.left + el.scrollLeft - this.nodeW / 2)),
+            Math.max(0, Math.round(event.clientY - r.top + el.scrollTop - this.nodeH / 2)),
+          );
+        }
+      }
+      return; // déposé hors canvas : annulé, aucun fichier créé
+    }
+    // Clic simple : toujours dans le coin haut gauche visible, quitte à
+    // chevaucher une note existante (la nouvelle reste affichée au-dessus).
+    const el = this.canvasRef?.nativeElement;
+    await this.createNoteAt(
+      Math.max(0, Math.round((el ? el.scrollLeft : 0) + 16)),
+      Math.max(0, Math.round((el ? el.scrollTop : 0) + 16)),
+    );
+  }
+
+  onNewPointerCancel(): void {
+    this.newDragStart = null;
+    this.newDragging = false;
+    this.dragNew.set(null);
+  }
+
+  /** Dernière note créée par le bouton : affichée au-dessus en cas de chevauchement. */
+  readonly topNoteId = signal<string | null>(null);
+
+  /** Crée le fichier .md puis fige sa position sur le canvas. */
+  private async createNoteAt(x: number, y: number): Promise<string | null> {
+    if (!this.store.projectPath()) return null;
+    try {
+      const id = await this.store.createNote(this.i18n.t('notes.untitled'));
+      this.store.setNodePosition(id, x, y);
+      await this.store.save();
+      this.topNoteId.set(id);
+      return id;
+    } catch (e) {
+      console.warn('Inkly: create note failed', e);
+      return null;
+    }
+  }
   onEdgeClick(id: string, event: MouseEvent): void {
     event.stopPropagation();
     this.selectedEdgeId.set(id);
@@ -124,11 +210,49 @@ export class BoardComponent implements OnInit, OnDestroy {
     this.scheduleSave();
   }
 
-  toggleSelectedEdge(): void {
+  /** Liste déroulante du style : ouvrir / fermer / choisir. */
+  toggleStyleMenu(): void {
+    this.styleMenuOpen.update((open) => !open);
+  }
+
+  closeStyleMenu(): void {
+    this.styleMenuOpen.set(false);
+  }
+
+  pickStyle(style: EdgeStyle): void {
+    this.styleDefault.set(style);
+    this.styleMenuOpen.set(false);
+  }
+
+  /** Fait cycler le style par défaut : simple → une pointe → deux pointes. */
+  cycleDefaultStyle(): void {
+    this.styleDefault.update((s) => ((s + 1) % 3) as EdgeStyle);
+  }
+
+  /** Fait cycler le style de la liaison sélectionnée. */
+  cycleSelectedEdge(): void {
     const id = this.selectedEdgeId();
     if (!id) return;
-    this.store.toggleEdgeDirection(id);
+    this.store.cycleEdgeStyle(id);
     this.scheduleSave();
+  }
+
+  /** Libellé traduit d'un style (infobulles / accessibilité). */
+  styleLabel(style: EdgeStyle): string {
+    return this.i18n.t(
+      style === 0 ? 'board.stylePlain' : style === 1 ? 'board.styleSingle' : 'board.styleDouble',
+    );
+  }
+
+  /** Style d'une liaison (0, 1 ou 2 pointes). */
+  edgeStyleOf(edgeId: string): EdgeStyle {
+    const edge = this.store.edges().find((e) => e.id === edgeId);
+    return edge ? edgeStyle(edge) : 0;
+  }
+
+  @HostListener('keydown.escape')
+  onEscape(): void {
+    this.closeStyleMenu();
   }
 
   // --- Drag & drop des icônes ---
@@ -157,9 +281,10 @@ export class BoardComponent implements OnInit, OnDestroy {
     }
   }
 
-  // --- Géométrie des flèches ---
+  // --- Géométrie des liaisons (courbes quadratiques) ---
 
-  edgeLine(edgeId: string): { x1: number; y1: number; x2: number; y2: number } {
+  /** Extrémités raccourcies au bord des cartes (centres décalés). */
+  private edgeEnds(edgeId: string): { x1: number; y1: number; x2: number; y2: number } {
     const edge = this.store.edges().find((e) => e.id === edgeId);
     const nodes = this.store.nodes();
     const a = nodes.find((n) => n.id === edge?.from);
@@ -181,6 +306,20 @@ export class BoardComponent implements OnInit, OnDestroy {
       x2: bx - (dx / len) * trimB,
       y2: by - (dy / len) * trimB,
     };
+  }
+
+  /** Chemin SVG `M … Q …` : courbe douce entre les deux cartes. */
+  edgePath(edgeId: string): string {
+    const { x1, y1, x2, y2 } = this.edgeEnds(edgeId);
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy) || 1;
+    // Courbure perpendiculaire, proportionnelle mais bornée.
+    const off = Math.min(36, Math.max(10, len * 0.18));
+    const cx = (x1 + x2) / 2 + (-dy / len) * off;
+    const cy = (y1 + y2) / 2 + (dx / len) * off;
+    const f = (n: number): number => Math.round(n * 10) / 10;
+    return `M ${f(x1)} ${f(y1)} Q ${f(cx)} ${f(cy)} ${f(x2)} ${f(y2)}`;
   }
 
   // --- Sauvegarde / fermeture ---

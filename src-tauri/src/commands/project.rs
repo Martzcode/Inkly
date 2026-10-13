@@ -6,7 +6,7 @@
 //! {
 //!   "version": 1,
 //!   "nodes": { "note.md": { "x": 120.0, "y": 80.0 } },
-//!   "edges": [{ "id": "…", "from": "a.md", "to": "b.md", "directed": true }],
+//!   "edges": [{ "id": "…", "from": "a.md", "to": "b.md", "directed": true, "doubleHeaded": false }],
 //!   "favorites": ["note.md"]
 //! }
 //! ```
@@ -38,9 +38,12 @@ pub struct NodePosition {
     pub y: f64,
 }
 
-/// Une liaison entre deux fichiers, façon mind-mapping :
-/// - `directed = false` → simple trait (flèche sans tête)
-/// - `directed = true` → flèche avec pointe.
+/// Une liaison entre deux fichiers, façon mind-mapping (courbe) :
+/// - `directed = false` → courbe simple (sans tête)
+/// - `directed = true, double_headed = false` → courbe avec une pointe
+/// - `directed = true, double_headed = true` → courbe avec deux pointes.
+/// `double_headed` est absent des anciens canvas (défaut : simple pointe
+/// si `directed`, sinon courbe simple).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CanvasEdge {
@@ -49,6 +52,8 @@ pub struct CanvasEdge {
     pub to: String,
     #[serde(default = "default_directed")]
     pub directed: bool,
+    #[serde(default)]
+    pub double_headed: bool,
 }
 
 fn default_directed() -> bool {
@@ -111,9 +116,8 @@ pub fn list_markdown_files(project_path: String) -> Result<Vec<ProjectFile>, App
             "project path must be absolute".into(),
         ));
     }
-    let entries = std::fs::read_dir(&root).map_err(|e| {
-        AppError::InvalidInput(format!("cannot read project folder: {e}"))
-    })?;
+    let entries = std::fs::read_dir(&root)
+        .map_err(|e| AppError::InvalidInput(format!("cannot read project folder: {e}")))?;
 
     let mut files: Vec<ProjectFile> = entries
         .filter_map(|e| e.ok())
@@ -159,14 +163,28 @@ pub fn save_canvas(project_path: String, canvas: CanvasDoc) -> Result<(), AppErr
     }
     let mut doc = canvas;
     doc.version = CANVAS_VERSION;
+    // Normalisation : sans direction, la double pointe n'a pas de sens.
+    for e in &mut doc.edges {
+        if !e.directed {
+            e.double_headed = false;
+        }
+    }
     // Nettoyage léger : pas d'auto-liaison, pas de doublon exact.
+    // Courbe simple et double pointe : symétriques (a↔b == b↔a).
+    // Pointe unique : orientée (a→b ≠ b→a).
     let mut seen = std::collections::HashSet::new();
     doc.edges.retain(|e| {
         if e.from == e.to {
             return false;
         }
-        let key = if e.directed {
-            format!("d:{}->{}", e.from, e.to)
+        let key = if e.directed && !e.double_headed {
+            format!("s:{}->{}", e.from, e.to)
+        } else if e.double_headed {
+            let (mut a, mut b) = (e.from.clone(), e.to.clone());
+            if b < a {
+                std::mem::swap(&mut a, &mut b);
+            }
+            format!("d:{a}<->{b}")
         } else {
             let (mut a, mut b) = (e.from.clone(), e.to.clone());
             if b < a {
@@ -223,8 +241,8 @@ pub fn read_markdown_file(project_path: String, file_id: String) -> Result<Strin
     if !full.starts_with(&root) {
         return Err(AppError::InvalidInput("file is outside the project".into()));
     }
-    let meta = std::fs::metadata(&full)
-        .map_err(|_| AppError::InvalidInput("file not found".into()))?;
+    let meta =
+        std::fs::metadata(&full).map_err(|_| AppError::InvalidInput("file not found".into()))?;
     if !meta.is_file() {
         return Err(AppError::InvalidInput("file not found".into()));
     }
@@ -232,8 +250,7 @@ pub fn read_markdown_file(project_path: String, file_id: String) -> Result<Strin
     if meta.len() > 1_048_576 {
         return Err(AppError::InvalidInput("file is too large".into()));
     }
-    std::fs::read_to_string(&full)
-        .map_err(|e| AppError::Internal(format!("cannot read note: {e}")))
+    std::fs::read_to_string(&full).map_err(|e| AppError::Internal(format!("cannot read note: {e}")))
 }
 
 /// Écrit le contenu Markdown d'une note du projet (racine uniquement).
@@ -389,7 +406,8 @@ mod tests {
                 id: "e1".into(),
                 from: "a.md".into(),
                 to: "b.md".into(),
-                directed: false,
+                directed: true,
+                double_headed: true,
             }],
             favorites: vec!["b.md".into(), "a.md".into(), "b.md".into()],
         };
@@ -400,8 +418,57 @@ mod tests {
         let loaded = load_canvas(path).unwrap();
         assert_eq!(loaded.nodes["a.md"], NodePosition { x: 10.0, y: 20.0 });
         assert_eq!(loaded.edges.len(), 1);
-        assert!(!loaded.edges[0].directed);
-        assert_eq!(loaded.favorites, vec!["a.md".to_string(), "b.md".to_string()]);
+        assert!(loaded.edges[0].directed);
+        assert!(loaded.edges[0].double_headed);
+        assert_eq!(
+            loaded.favorites,
+            vec!["a.md".to_string(), "b.md".to_string()]
+        );
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn legacy_canvas_without_double_headed_loads_as_single_or_plain() {
+        // Anciens canvas : seul `directed` existe.
+        let raw = r#"{
+            "version": 1,
+            "nodes": {},
+            "edges": [
+                { "id": "e1", "from": "a.md", "to": "b.md", "directed": true },
+                { "id": "e2", "from": "a.md", "to": "c.md", "directed": false }
+            ],
+            "favorites": []
+        }"#;
+        let doc: CanvasDoc = serde_json::from_str(raw).unwrap();
+        assert!(!doc.edges[0].double_headed);
+        assert!(doc.edges[0].directed);
+        assert!(!doc.edges[1].directed);
+    }
+
+    #[test]
+    fn save_canvas_dedups_double_headed_as_undirected() {
+        let dir = std::env::temp_dir().join(format!("inkly-canvas-dbl-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.to_string_lossy().to_string();
+
+        let edge = |id: &str, from: &str, to: &str| CanvasEdge {
+            id: id.into(),
+            from: from.into(),
+            to: to.into(),
+            directed: true,
+            double_headed: true,
+        };
+        let doc = CanvasDoc {
+            version: CANVAS_VERSION,
+            nodes: HashMap::new(),
+            edges: vec![edge("e1", "a.md", "b.md"), edge("e2", "b.md", "a.md")],
+            favorites: vec![],
+        };
+        save_canvas(path.clone(), doc).unwrap();
+        let loaded = load_canvas(path).unwrap();
+        assert_eq!(loaded.edges.len(), 1);
 
         let _ = std::fs::remove_dir_all(&dir);
     }
@@ -411,8 +478,7 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("inkly-empty-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
-        let loaded =
-            load_canvas(dir.to_string_lossy().to_string()).unwrap();
+        let loaded = load_canvas(dir.to_string_lossy().to_string()).unwrap();
         assert_eq!(loaded, CanvasDoc::default());
         let _ = std::fs::remove_dir_all(&dir);
     }

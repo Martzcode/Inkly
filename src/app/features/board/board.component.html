@@ -15,14 +15,50 @@
       </div>
     </div>
     <div class="tools">
-      <label class="toggle">
-        <input
-          type="checkbox"
-          [checked]="directedDefault()"
-          (change)="directedDefault.set($any($event.target).checked)"
-        />
-        {{ i18n.t('board.directed') }}
-      </label>
+      <button
+        type="button"
+        class="new-note-btn"
+        (pointerdown)="onNewPointerDown($event)"
+        (pointermove)="onNewPointerMove($event)"
+        (pointerup)="onNewPointerUp($event)"
+        (pointercancel)="onNewPointerCancel()"
+        [attr.aria-label]="i18n.t('notes.newNote')"
+        [attr.title]="i18n.t('notes.newNote')"
+      >
+        <svg lucideFilePlus [size]="16" aria-hidden="true"></svg>
+      </button>
+      <div class="style-select">
+        <button
+          type="button"
+          class="style-btn"
+          (click)="toggleStyleMenu()"
+          [attr.aria-label]="i18n.t('board.styleLabel') + ' : ' + styleLabel(styleDefault())"
+          [attr.title]="i18n.t('board.styleLabel') + ' : ' + styleLabel(styleDefault())"
+          aria-haspopup="listbox"
+          [attr.aria-expanded]="styleMenuOpen()"
+        >
+          <app-edge-preview [style]="styleDefault()" />
+          <svg lucideChevronDown [size]="14" aria-hidden="true"></svg>
+        </button>
+        @if (styleMenuOpen()) {
+          <button type="button" class="menu-backdrop" (click)="closeStyleMenu()" tabindex="-1" aria-hidden="true"></button>
+          <div class="style-menu" role="listbox" [attr.aria-label]="i18n.t('board.styleLabel')">
+            @for (s of edgeStyles; track s) {
+              <button
+                type="button"
+                role="option"
+                [attr.aria-selected]="styleDefault() === s"
+                [class.active]="styleDefault() === s"
+                (click)="pickStyle(s)"
+                [attr.aria-label]="styleLabel(s)"
+                [attr.title]="styleLabel(s)"
+              >
+                <app-edge-preview [style]="s" />
+              </button>
+            }
+          </div>
+        }
+      </div>
     </div>
   </section>
 
@@ -38,7 +74,15 @@
       @if (selectedSourceId()) {
         <p class="banner overlay">
           {{ i18n.t('board.linking') }}
-          ({{ directedDefault() ? i18n.t('board.withHead') : i18n.t('board.withoutHead') }}).
+          <button
+            type="button"
+            class="style-mini"
+            (click)="cycleDefaultStyle()"
+            [attr.aria-label]="styleLabel(styleDefault())"
+            [attr.title]="styleLabel(styleDefault())"
+          >
+            <app-edge-preview [style]="styleDefault()" />
+          </button>
           <button type="button" (click)="cancelLinking()">{{ i18n.t('board.cancel') }}</button>
         </p>
       }
@@ -46,13 +90,20 @@
       @if (selectedEdge()) {
         <p class="banner overlay">
           {{ i18n.t('board.edgeTitle', { from: selectedEdge()!.from, to: selectedEdge()!.to }) }}
-          ({{ selectedEdge()!.directed ? i18n.t('board.withHead') : i18n.t('board.withoutHead') }})
-          <button type="button" (click)="toggleSelectedEdge()">{{ i18n.t('board.invert') }}</button>
+          <button
+            type="button"
+            class="style-mini"
+            (click)="cycleSelectedEdge()"
+            [attr.aria-label]="i18n.t('board.nextStyle')"
+            [attr.title]="i18n.t('board.nextStyle') + ' : ' + styleLabel(edgeStyleOf(selectedEdge()!.id))"
+          >
+            <app-edge-preview [style]="edgeStyleOf(selectedEdge()!.id)" />
+          </button>
           <button type="button" class="danger" (click)="deleteSelectedEdge()">{{ i18n.t('board.delete') }}</button>
         </p>
       }
 
-    <div class="canvas" (click)="selectedEdgeId.set(null)">
+    <div #canvas class="canvas" (click)="selectedEdgeId.set(null)">
       <svg class="edges" aria-hidden="true">
         <defs>
           <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5"
@@ -61,20 +112,20 @@
           </marker>
         </defs>
         @for (edge of store.edges(); track edge.id) {
-          @let line = edgeLine(edge.id);
+          @let d = edgePath(edge.id);
+          @let st = edgeStyleOf(edge.id);
           <!-- large zone cliquable invisible -->
-          <line
-            [attr.x1]="line.x1" [attr.y1]="line.y1"
-            [attr.x2]="line.x2" [attr.y2]="line.y2"
+          <path
+            [attr.d]="d"
             class="hit"
             (click)="onEdgeClick(edge.id, $event)"
           />
-          <line
-            [attr.x1]="line.x1" [attr.y1]="line.y1"
-            [attr.x2]="line.x2" [attr.y2]="line.y2"
+          <path
+            [attr.d]="d"
             class="link"
             [class.selected]="selectedEdgeId() === edge.id"
-            [attr.marker-end]="edge.directed ? 'url(#arrow)' : null"
+            [attr.marker-end]="st === 1 || st === 2 ? 'url(#arrow)' : null"
+            [attr.marker-start]="st === 2 ? 'url(#arrow)' : null"
           />
         }
       </svg>
@@ -84,6 +135,7 @@
           class="node-wrap"
           [class.selected]="selectedSourceId() === node.id"
           [class.is-fav]="store.isFavorite(node.id)"
+          [class.is-top]="node.id === topNoteId()"
           [style.left.px]="node.x"
           [style.top.px]="node.y"
         >
@@ -117,6 +169,16 @@
         </div>
       }
     </div>
+    </div>
+  }
+  @if (dragNew()) {
+    <div
+      class="drag-ghost"
+      aria-hidden="true"
+      [style.left.px]="dragNew()!.x + 12"
+      [style.top.px]="dragNew()!.y + 12"
+    >
+      <svg lucideFileText [size]="28" [strokeWidth]="1.8"></svg>
     </div>
   }
 }
