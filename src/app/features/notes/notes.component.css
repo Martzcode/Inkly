@@ -233,6 +233,28 @@
   white-space: nowrap;
 }
 
+/* Édition inline du titre : rouge si le nom est déjà pris. */
+.rename-input {
+  margin: 0;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  min-width: 0;
+  flex: 1;
+  max-width: 320px;
+  padding: 2px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: inherit;
+  outline: none;
+}
+
+.rename-input.invalid {
+  border-color: #b3261e;
+  color: #b3261e;
+}
+
 .badge {
   font-size: 10px;
   font-weight: 700;

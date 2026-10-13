@@ -7,6 +7,20 @@ export interface BoardNode extends ProjectFile {
 }
 
 /**
+ * Nettoie un nom de note saisi (chemins et extensions retirés).
+ * Retourne une base vide si rien d'exploitable ne subsiste.
+ */
+export function sanitizeNoteName(wanted: string): string {
+  return wanted
+    .trim()
+    .replace(/[/\\]+/g, '')
+    .replace(/\.\.+/g, '.')
+    .replace(/\.markdown$/i, '')
+    .replace(/\.md$/i, '')
+    .trim();
+}
+
+/**
  * État du projet ouvert : dossier + fichiers md + graphe canvas.
  * Le canvas est persisté dans `<projet>/.inkly/canvas.json` via le backend.
  */
@@ -196,13 +210,7 @@ export class ProjectStore {
   async createNote(wanted: string): Promise<string> {
     const path = this.projectPath();
     if (!path) throw new Error('No project open');
-    let base = wanted
-      .trim()
-      .replace(/[/\\]+/g, '')
-      .replace(/\.\.+/g, '.')
-      .replace(/\.markdown$/i, '')
-      .replace(/\.md$/i, '')
-      .trim();
+    let base = sanitizeNoteName(wanted);
     if (!base) base = 'note';
     const taken = new Set(this.files().map((f) => f.id.toLowerCase()));
     let candidate = `${base}.md`;
@@ -213,5 +221,40 @@ export class ProjectStore {
     await this.api.writeMarkdownFile(path, candidate, '');
     await this.refreshFiles();
     return candidate;
+  }
+
+  /**
+   * Renomme une note (`oldId` → `base(new).md`) : renommage disque via le
+   * backend (refuse la collision), puis migration des références
+   * (positions, liaisons, favoris, note ouverte) et sauvegarde du canvas.
+   * Retourne le nouvel identifiant.
+   */
+  async renameNote(oldId: string, wanted: string): Promise<string> {
+    const path = this.projectPath();
+    if (!path) throw new Error('No project open');
+    const base = sanitizeNoteName(wanted);
+    if (!base) throw new Error('Invalid name');
+    const newId = `${base}.md`;
+    if (newId === oldId) return oldId;
+    const finalId = await this.api.renameMarkdownFile(path, oldId, newId);
+    this.positions.update((p) => {
+      if (!(oldId in p)) return p;
+      const next = { ...p };
+      next[finalId] = next[oldId];
+      delete next[oldId];
+      return next;
+    });
+    this.edges.update((list) =>
+      list.map((e) => ({
+        ...e,
+        from: e.from === oldId ? finalId : e.from,
+        to: e.to === oldId ? finalId : e.to,
+      })),
+    );
+    this.favorites.update((list) => list.map((f) => (f === oldId ? finalId : f)));
+    if (this.activeNoteId() === oldId) this.activeNoteId.set(finalId);
+    await this.refreshFiles();
+    await this.save();
+    return finalId;
   }
 }

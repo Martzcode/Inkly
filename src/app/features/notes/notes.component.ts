@@ -15,6 +15,7 @@ import {
   LucideList,
   LucideListOrdered,
   LucideMinus,
+  LucidePen,
   LucidePilcrow,
   LucideRedo2,
   LucideRemoveFormatting,
@@ -31,6 +32,7 @@ import { ApiService } from '../../core/services/api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import type { DictKey } from '../../core/i18n/i18n.service';
 import { ProjectStore } from '../../core/services/project-store.service';
+import { ToastComponent } from '../../shared/toast/toast.component';
 
 /** Un pas d'historique : contenu + position du curseur (offsets texte). */
 interface HistoryEntry {
@@ -53,6 +55,7 @@ interface HistoryEntry {
   selector: 'app-notes',
   imports: [
     RouterLink,
+    ToastComponent,
     LucideBold,
     LucideCode,
     LucideCodeXml,
@@ -66,6 +69,7 @@ interface HistoryEntry {
     LucideList,
     LucideListOrdered,
     LucideMinus,
+    LucidePen,
     LucidePilcrow,
     LucideRedo2,
     LucideRemoveFormatting,
@@ -86,6 +90,10 @@ export class NotesComponent implements OnDestroy {
   /** Création d'une note : saisie du nom en cours. */
   readonly creating = signal(false);
   readonly newName = signal('');
+  /** Renommage de la note ouverte : saisie + erreur éventuelle. */
+  readonly renaming = signal(false);
+  readonly renameValue = signal('');
+  readonly renameError = signal<string | null>(null);
   /** États actifs (gras, liste…) selon la position du curseur. */
   readonly activeStates = signal<Record<string, boolean>>({});
   /** Bloc courant : p, h1, h2, h3, pre, blockquote… */
@@ -159,6 +167,54 @@ export class NotesComponent implements OnDestroy {
   async closeNote(): Promise<void> {
     await this.flushDraft();
     this.store.closeNote();
+  }
+
+  /** Passe le titre en édition (sans l'extension). */
+  startRename(): void {
+    const id = this.store.activeNoteId();
+    if (!id) return;
+    this.renameValue.set(id.replace(/\.(markdown|md)$/i, ''));
+    this.renameError.set(null);
+    this.renaming.set(true);
+  }
+
+  cancelRename(): void {
+    this.renaming.set(false);
+    this.renameValue.set('');
+    this.renameError.set(null);
+  }
+
+  onRenameInput(event: Event): void {
+    this.renameValue.set((event.target as HTMLInputElement).value);
+    this.renameError.set(null);
+  }
+
+  /** Valide le renommage : brouillon flushé, puis migration + rechargement. */
+  async confirmRename(): Promise<void> {
+    const oldId = this.store.activeNoteId();
+    const wanted = this.renameValue().trim();
+    if (!oldId || !wanted) {
+      this.cancelRename();
+      return;
+    }
+    const candidate = `${wanted.replace(/\.(markdown|md)$/i, '')}.md`;
+    if (candidate === oldId) {
+      this.cancelRename();
+      return;
+    }
+    if (this.store.files().some((f) => f.id !== oldId && f.id.toLowerCase() === candidate.toLowerCase())) {
+      this.renameError.set(this.i18n.t('rename.exists'));
+      return;
+    }
+    try {
+      // Le brouillon part dans l'ancien fichier avant que le backend
+      // ne le déplace : aucun contenu perdu, puis recharge du nouveau.
+      await this.flushDraft();
+      await this.store.renameNote(oldId, wanted);
+      this.cancelRename();
+    } catch (e) {
+      this.renameError.set(e instanceof Error ? e.message : String(e));
+    }
   }
 
   /** Recharge la note après une erreur. */

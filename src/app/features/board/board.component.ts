@@ -1,10 +1,11 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, computed, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { LucideChevronDown, LucideFilePlus, LucideFileText, LucideStar, LucideX } from '@lucide/angular';
+import { LucideChevronDown, LucideFilePlus, LucideFileText, LucidePen, LucideStar, LucideX } from '@lucide/angular';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { EdgeStyle, edgeStyle } from '../../core/services/api.service';
 import { ProjectStore } from '../../core/services/project-store.service';
 import { EdgePreviewComponent } from '../../shared/edge-preview/edge-preview.component';
+import { ToastComponent } from '../../shared/toast/toast.component';
 
 interface DragState {
   id: string;
@@ -19,7 +20,7 @@ interface DragState {
  */
 @Component({
   selector: 'app-board',
-  imports: [RouterLink, EdgePreviewComponent, LucideChevronDown, LucideFilePlus, LucideFileText, LucideStar, LucideX],
+  imports: [RouterLink, EdgePreviewComponent, LucideChevronDown, LucideFilePlus, LucideFileText, LucidePen, LucideStar, LucideX, ToastComponent],
   templateUrl: './board.component.html',
   styleUrl: './board.component.css',
 })
@@ -118,6 +119,53 @@ export class BoardComponent implements OnInit, OnDestroy {
     this.scheduleSave();
   }
 
+  /** Crayon : passe le nom du nœud en édition (sans lier ni ouvrir). */
+  startRename(event: MouseEvent, id: string): void {
+    event.stopPropagation();
+    this.dragMoved = false;
+    this.selectedSourceId.set(null);
+    this.renameValue.set(id.replace(/\.(markdown|md)$/i, ''));
+    this.renameError.set(null);
+    this.renamingId.set(id);
+  }
+
+  cancelRename(): void {
+    this.renamingId.set(null);
+    this.renameValue.set('');
+    this.renameError.set(null);
+  }
+
+  onRenameInput(event: Event): void {
+    this.renameValue.set((event.target as HTMLInputElement).value);
+    this.renameError.set(null);
+  }
+
+  /** Valide le renommage du nœud (collision → rouge + infobulle). */
+  async confirmRenameFile(id: string, event?: Event): Promise<void> {
+    event?.stopPropagation();
+    const wanted = this.renameValue().trim();
+    if (!wanted) {
+      this.cancelRename();
+      return;
+    }
+    const candidate = `${wanted.replace(/\.(markdown|md)$/i, '')}.md`;
+    if (candidate === id) {
+      this.cancelRename();
+      return;
+    }
+    if (this.store.files().some((f) => f.id !== id && f.id.toLowerCase() === candidate.toLowerCase())) {
+      this.renameError.set(this.i18n.t('rename.exists'));
+      return;
+    }
+    try {
+      const finalId = await this.store.renameNote(id, wanted);
+      this.topNoteId.set(finalId);
+      this.cancelRename();
+    } catch (e) {
+      this.renameError.set(e instanceof Error ? e.message : String(e));
+    }
+  }
+
   isFavorite(id: string): boolean {
     return this.store.isFavorite(id);
   }
@@ -181,6 +229,10 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   /** Dernière note créée par le bouton : affichée au-dessus en cas de chevauchement. */
   readonly topNoteId = signal<string | null>(null);
+  /** Renommage inline d'un nœud : id en cours + saisie + erreur éventuelle. */
+  readonly renamingId = signal<string | null>(null);
+  readonly renameValue = signal('');
+  readonly renameError = signal<string | null>(null);
 
   /** Crée le fichier .md puis fige sa position sur le canvas. */
   private async createNoteAt(x: number, y: number): Promise<string | null> {

@@ -28,6 +28,7 @@ pub fn run() {
             commands::project::save_canvas,
             commands::project::read_markdown_file,
             commands::project::write_markdown_file,
+            commands::project::rename_markdown_file,
             commands::project::search_notes,
         ])
         .setup(|app| {

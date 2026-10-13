@@ -283,6 +283,57 @@ pub fn write_markdown_file(
         .map_err(|e| AppError::Internal(format!("cannot write note: {e}")))
 }
 
+/// Renomme un fichier Markdown du projet (racine uniquement).
+/// Retourne le nouvel identifiant. Refuse l'écrasement d'un fichier
+/// existant (comparaison insensible à la casse), sauf renommage
+/// case-only (`Note.md` → `note.md`).
+#[tauri::command]
+pub fn rename_markdown_file(
+    project_path: String,
+    file_id: String,
+    new_id: String,
+) -> Result<String, AppError> {
+    validate_file_id(&file_id)?;
+    validate_file_id(&new_id)?;
+    let root = PathBuf::from(&project_path);
+    if !root.is_absolute() {
+        return Err(AppError::InvalidInput(
+            "project path must be absolute".into(),
+        ));
+    }
+    if !root.is_dir() {
+        return Err(AppError::InvalidInput("project folder not found".into()));
+    }
+    if file_id == new_id {
+        return Ok(new_id);
+    }
+    let from = root.join(&file_id);
+    let to = root.join(&new_id);
+    // Garde-fou anti path-traversal : les chemins résolus doivent rester dans le projet.
+    if !from.starts_with(&root) || !to.starts_with(&root) {
+        return Err(AppError::InvalidInput("file is outside the project".into()));
+    }
+    if !from.is_file() {
+        return Err(AppError::InvalidInput("file not found".into()));
+    }
+    // Collision : un autre fichier porte déjà ce nom (insensible à la casse).
+    if file_id.to_lowercase() != new_id.to_lowercase() {
+        let taken = std::fs::read_dir(&root)
+            .map_err(|e| AppError::InvalidInput(format!("cannot read project folder: {e}")))?
+            .filter_map(|e| e.ok())
+            .filter_map(|e| e.file_name().into_string().ok())
+            .any(|name| name.to_lowercase() == new_id.to_lowercase());
+        if taken {
+            return Err(AppError::InvalidInput(
+                "a note with this name already exists".into(),
+            ));
+        }
+    }
+    std::fs::rename(&from, &to)
+        .map_err(|e| AppError::Internal(format!("cannot rename note: {e}")))?;
+    Ok(new_id)
+}
+
 /// Un fichier Markdown contenant le mot recherché.
 #[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -525,6 +576,39 @@ mod tests {
         // MOT en majuscules matche aussi, vide ne matche rien.
         assert_eq!(search_notes(path.clone(), "MOT".into()).unwrap().len(), 2);
         assert!(search_notes(path, "   ".into()).unwrap().is_empty());
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn rename_markdown_file_roundtrip_and_rejections() {
+        let dir = std::env::temp_dir().join(format!("inkly-rename-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("old.md"), "# Contenu").unwrap();
+        std::fs::write(dir.join("taken.md"), "# Pris").unwrap();
+
+        let path = dir.to_string_lossy().to_string();
+        let new_id = rename_markdown_file(path.clone(), "old.md".into(), "new.md".into()).unwrap();
+        assert_eq!(new_id, "new.md");
+        assert!(!dir.join("old.md").exists());
+        assert_eq!(
+            std::fs::read_to_string(dir.join("new.md")).unwrap(),
+            "# Contenu"
+        );
+
+        // Collision : refusé, le fichier source est intact.
+        assert!(rename_markdown_file(path.clone(), "new.md".into(), "TAKEN.md".into()).is_err());
+        assert!(dir.join("new.md").exists());
+
+        // Identique : no-op accepté. Invalides : refusés.
+        assert_eq!(
+            rename_markdown_file(path.clone(), "new.md".into(), "new.md".into()).unwrap(),
+            "new.md"
+        );
+        assert!(rename_markdown_file(path.clone(), "new.md".into(), "../evil.md".into()).is_err());
+        assert!(rename_markdown_file(path.clone(), "new.md".into(), "note.txt".into()).is_err());
+        assert!(rename_markdown_file(path.clone(), "missing.md".into(), "x.md".into()).is_err());
 
         let _ = std::fs::remove_dir_all(&dir);
     }

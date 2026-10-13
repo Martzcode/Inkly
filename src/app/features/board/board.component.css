@@ -408,6 +408,66 @@
   visibility: visible;
 }
 
+/* Crayon hors du flux flex : en haut à gauche, symétrique de l'étoile.
+   Visible au survol / focus, comme `.fav`. */
+.node-wrap .edit {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.node-wrap:hover .edit,
+.node-wrap:focus-within .edit,
+.node-wrap.selected .edit {
+  opacity: 1;
+  visibility: visible;
+}
+
+.node-wrap .edit:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.node-wrap .edit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Édition inline du nom sur le nœud : rouge si le nom est déjà pris. */
+.node .rename-input {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  width: 104px;
+  max-width: 104px;
+  padding: 1px 5px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  color: inherit;
+  outline: none;
+  text-align: center;
+}
+
+.node .rename-input.invalid {
+  border-color: #b3261e;
+  color: #b3261e;
+}
+
 .node-wrap .fav:hover {
   color: var(--accent);
   border-color: var(--accent);

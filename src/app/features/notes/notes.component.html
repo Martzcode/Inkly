@@ -95,12 +95,33 @@
     </div>
     <article class="note">
       <header class="note-head">
-        <h2>{{ store.activeNoteId() }}</h2>
+        @if (renaming()) {
+          <input
+            type="text"
+            class="rename-input"
+            [class.invalid]="renameError() !== null"
+            [value]="renameValue()"
+            (input)="onRenameInput($event)"
+            (keydown.enter)="confirmRename()"
+            (keydown.escape)="cancelRename()"
+            [attr.aria-label]="i18n.t('rename.rename')"
+            [attr.aria-invalid]="renameError() !== null"
+            maxlength="100"
+            autofocus
+          />
+        } @else {
+          <h2>{{ store.activeNoteId() }}</h2>
+        }
         <span class="badge">{{ i18n.t('notes.preview') }}</span>
         <span class="save-status" aria-live="polite">
           @if (saveState() === 'saving') { {{ i18n.t('notes.saving') }} }
           @else if (saveState() === 'saved') { {{ i18n.t('notes.saved') }} }
         </span>
+        @if (!renaming()) {
+          <button type="button" class="home-btn" (click)="startRename()" [attr.aria-label]="i18n.t('rename.rename')" [attr.title]="i18n.t('rename.rename')">
+            <svg lucidePen [size]="16" aria-hidden="true"></svg>
+          </button>
+        }
         <button type="button" class="home-btn" (click)="closeNote()" [attr.aria-label]="i18n.t('notes.closeNote')" [attr.title]="i18n.t('notes.closeNote')">
           <svg lucideX [size]="16" aria-hidden="true"></svg>
         </button>
@@ -121,4 +142,7 @@
       ></div>
     </article>
     </div>
+    @if (renameError()) {
+      <app-toast [message]="renameError()!" (closed)="renameError.set(null)" />
+    }
 }

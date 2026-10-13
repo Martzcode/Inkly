@@ -153,9 +153,37 @@
             [title]="node.name"
           >
           <svg lucideFileText [size]="28" [strokeWidth]="1.8" aria-hidden="true"></svg>
-          <span class="name">{{ fileLabel(node.name) }}</span>
+          @if (renamingId() === node.id) {
+            <input
+              type="text"
+              class="rename-input"
+              [class.invalid]="renameError() !== null"
+              [value]="renameValue()"
+              (input)="onRenameInput($event)"
+              (click)="$event.stopPropagation()"
+              (dblclick)="$event.stopPropagation()"
+              (pointerdown)="$event.stopPropagation()"
+              (keydown.enter)="confirmRenameFile(node.id, $event)"
+              (keydown.escape)="cancelRename(); $event.stopPropagation()"
+              [attr.aria-label]="i18n.t('rename.rename')"
+              [attr.aria-invalid]="renameError() !== null"
+              maxlength="100"
+              autofocus
+            />
+          } @else {
+            <span class="name">{{ fileLabel(node.name) }}</span>
+          }
             <span class="badge">.md</span>
           </div>
+          <button
+            type="button"
+            class="edit"
+            [attr.aria-label]="i18n.t('rename.rename')"
+            [attr.title]="i18n.t('rename.rename')"
+            (click)="startRename($event, node.id)"
+          >
+            <svg lucidePen [size]="13" aria-hidden="true"></svg>
+          </button>
           <button
             type="button"
             class="fav"
@@ -180,5 +208,8 @@
     >
       <svg lucideFileText [size]="28" [strokeWidth]="1.8"></svg>
     </div>
+  }
+  @if (renameError()) {
+    <app-toast [message]="renameError()!" (closed)="renameError.set(null)" />
   }
 }

@@ -84,6 +84,10 @@ export class ApiService {
     return invoke<void>('write_markdown_file', { projectPath, fileId, content });
   }
 
+  renameMarkdownFile(projectPath: string, fileId: string, newId: string): Promise<string> {
+    return invoke<string>('rename_markdown_file', { projectPath, fileId, newId });
+  }
+
   searchNotes(projectPath: string, query: string): Promise<SearchHit[]> {
     return invoke<SearchHit[]>('search_notes', { projectPath, query });
   }

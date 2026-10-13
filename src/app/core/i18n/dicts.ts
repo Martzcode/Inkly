@@ -128,6 +128,9 @@ const fr = {
   'fav.remove': 'Retirer',
   'fav.removeAria': 'Retirer des favoris',
 
+  'rename.rename': 'Renommer la note',
+  'rename.exists': 'Une note porte déjà ce nom.',
+
   'settings.title': 'Paramètres',
   'settings.language': 'Langue',
   'settings.languageHint': "La langue s'applique immédiatement à toute l'application.",
@@ -262,6 +265,9 @@ const en: Dict = {
   'fav.remove': 'Remove',
   'fav.removeAria': 'Remove from favorites',
 
+  'rename.rename': 'Rename note',
+  'rename.exists': 'A note with this name already exists.',
+
   'settings.title': 'Settings',
   'settings.language': 'Language',
   'settings.languageHint': 'The language applies instantly across the app.',
@@ -392,6 +398,9 @@ const es: Dict = {
   'fav.remove': 'Quitar',
   'fav.removeAria': 'Quitar de favoritos',
 
+  'rename.rename': 'Renombrar la nota',
+  'rename.exists': 'Ya existe una nota con ese nombre.',
+
   'settings.title': 'Ajustes',
   'settings.language': 'Idioma',
   'settings.languageHint': 'El idioma se aplica al instante en toda la aplicación.',
@@ -521,6 +530,9 @@ const de: Dict = {
   'fav.countOther': '{count} angeheftete Notizen',
   'fav.remove': 'Entfernen',
   'fav.removeAria': 'Aus Favoriten entfernen',
+
+  'rename.rename': 'Notiz umbenennen',
+  'rename.exists': 'Eine Notiz mit diesem Namen existiert bereits.',
 
   'settings.title': 'Einstellungen',
   'settings.language': 'Sprache',
