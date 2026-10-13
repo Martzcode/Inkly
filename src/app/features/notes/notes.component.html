@@ -5,45 +5,13 @@
     <p class="muted">{{ i18n.t('notes.noProject') }}</p>
     <a routerLink="/home" class="primary">{{ i18n.t('notes.goHome') }}</a>
   </section>
-} @else if (store.files().length === 0) {
+} @else if (!store.activeNoteId()) {
   <section class="panel">
     <h2>{{ i18n.t('notes.title') }}</h2>
-    <p class="muted">{{ i18n.t('notes.noFiles') }}</p>
+    <p class="muted">{{ i18n.t('notes.noOpenNote') }}</p>
     <a routerLink="/board" class="primary">{{ i18n.t('notes.backCanvas') }}</a>
   </section>
-} @else {
-  @if (!store.activeNoteId()) {
-    <section class="panel">
-      <h2>{{ store.files().length === 1 ? i18n.t('notes.filesOne', { count: 1 }) : i18n.t('notes.filesOther', { count: store.files().length }) }}</h2>
-      <p class="muted">{{ i18n.t('notes.pickHint') }}</p>
-      <div class="file-list">
-        @for (f of store.files(); track f.id) {
-          <button type="button" (click)="choose(f.id)">{{ f.name }}</button>
-        }
-      </div>
-      <div class="new-note">
-        @if (!creating()) {
-          <button type="button" class="ghost-btn" (click)="startCreate()">+ {{ i18n.t('notes.newNote') }}</button>
-        } @else {
-          <input
-            type="text"
-            [value]="newName()"
-            (input)="newName.set($any($event.target).value)"
-            (keydown.enter)="confirmCreate()"
-            (keydown.escape)="cancelCreate()"
-            [placeholder]="i18n.t('notes.newPlaceholder')"
-            [attr.aria-label]="i18n.t('notes.newNote')"
-            maxlength="100"
-          />
-          <button type="button" class="primary-btn" (click)="confirmCreate()">{{ i18n.t('notes.create') }}</button>
-          <button type="button" class="ghost-btn" (click)="cancelCreate()">{{ i18n.t('notes.cancel') }}</button>
-        }
-      </div>
-      @if (error()) {
-        <p class="new-note-error">{{ error() }}</p>
-      }
-    </section>
-  } @else if (loading()) {
+} @else if (loading()) {
     <section class="panel"><p class="muted">{{ i18n.t('notes.loading', { name: store.activeNoteId() ?? '' }) }}</p></section>
   } @else if (error()) {
     <section class="panel">
@@ -151,5 +119,4 @@
         (keydown)="onKeydown($event)"
       ></div>
     </article>
-  }
 }
