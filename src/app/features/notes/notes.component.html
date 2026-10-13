@@ -19,6 +19,7 @@
       <button type="button" class="primary" (click)="retry()">{{ i18n.t('notes.retry') }}</button>
     </section>
   } @else {
+    <div class="editor">
     <div class="ribbon" role="toolbar" [attr.aria-label]="i18n.t('ribbon.toolbar')">
       <div class="group">
         <button type="button" (mousedown)="$event.preventDefault()" (click)="undo()" [attr.title]="tip('ribbon.undo', 'Z')" [attr.aria-label]="i18n.t('ribbon.undo')">
@@ -119,4 +120,5 @@
         (keydown)="onKeydown($event)"
       ></div>
     </article>
+    </div>
 }

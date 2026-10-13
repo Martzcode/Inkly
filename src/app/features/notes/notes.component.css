@@ -123,23 +123,32 @@
   margin: 10px 0 0;
 }
 
-/* Ruban de mise en forme, style Docs/Office : groupes d'icônes
-   séparés, bouton actif teinté, collant en haut de la page. */
+/* Conteneur de l'éditeur ouvert : ruban plein-largeur + page centrée. */
+.editor {
+  display: block;
+  width: 100%;
+}
+
+/* Ruban de mise en forme façon Docs/Writer : collé sous la barre de
+   titre, plein-largeur, toujours visible au défilement.
+   `.page` (conteneur de scroll) a un padding de 40px 24px : les marges
+   négatives compensent pour coller le ruban aux bords, et `top: -40px`
+   l'ancre juste sous la titlebar. */
 .ribbon {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   flex-wrap: wrap;
-  max-width: 820px;
-  margin: 0 auto 12px;
+  margin: -40px -24px 16px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: var(--shadow);
-  padding: 6px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgb(22 24 29 / 0.08);
+  padding: 8px 16px;
   position: sticky;
-  top: 0;
-  z-index: 5;
+  top: -40px;
+  z-index: 20;
 }
 
 .ribbon .group {
