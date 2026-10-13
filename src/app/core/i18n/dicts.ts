@@ -18,6 +18,14 @@ const fr = {
   'titlebar.restore': 'Restaurer',
   'titlebar.close': 'Fermer',
 
+  'about.button': 'À propos d’Inkly',
+  'about.title': 'À propos d’Inkly',
+  'about.description':
+    'Inkly est un espace de notes Markdown visuel et local : organisez vos idées sur un canvas façon mind-map, éditez sans voir la syntaxe, tout est sauvegardé en .md sur votre machine.',
+  'about.repoLabel': 'Dépôt GitHub du projet',
+  'about.developedBy': 'Développé par',
+  'about.close': 'Fermer',
+
   'home.welcome': 'Bienvenue sur Inkly',
   'home.subtitle':
     'Vos notes, organisées par dossiers et stockées en local sur votre machine. Ouvrez un projet pour commencer.',
@@ -143,6 +151,14 @@ const en: Dict = {
   'titlebar.restore': 'Restore',
   'titlebar.close': 'Close',
 
+  'about.button': 'About Inkly',
+  'about.title': 'About Inkly',
+  'about.description':
+    'Inkly is a local-first visual Markdown workspace: organize ideas on a mind-map canvas, edit without seeing syntax, everything auto-saved as .md on your machine.',
+  'about.repoLabel': 'Project GitHub repository',
+  'about.developedBy': 'Developed by',
+  'about.close': 'Close',
+
   'home.welcome': 'Welcome to Inkly',
   'home.subtitle':
     'Your notes, organized in folders and stored locally on your machine. Open a project to get started.',
@@ -263,6 +279,14 @@ const es: Dict = {
   'titlebar.restore': 'Restaurar',
   'titlebar.close': 'Cerrar',
 
+  'about.button': 'Acerca de Inkly',
+  'about.title': 'Acerca de Inkly',
+  'about.description':
+    'Inkly es un espacio visual y local de notas Markdown: organiza tus ideas en un lienzo tipo mapa mental, edita sin ver la sintaxis, todo se guarda en .md en tu equipo.',
+  'about.repoLabel': 'Repositorio GitHub del proyecto',
+  'about.developedBy': 'Desarrollado por',
+  'about.close': 'Cerrar',
+
   'home.welcome': 'Bienvenido a Inkly',
   'home.subtitle':
     'Tus notas, organizadas en carpetas y guardadas localmente en tu equipo. Abre un proyecto para empezar.',
@@ -382,6 +406,14 @@ const de: Dict = {
   'titlebar.maximize': 'Maximieren',
   'titlebar.restore': 'Wiederherstellen',
   'titlebar.close': 'Schließen',
+
+  'about.button': 'Über Inkly',
+  'about.title': 'Über Inkly',
+  'about.description':
+    'Inkly ist ein lokaler visueller Markdown-Arbeitsbereich: Ideen auf einem Mind-Map-Canvas ordnen, ohne Syntax bearbeiten, alles automatisch als .md auf deinem Rechner gespeichert.',
+  'about.repoLabel': 'GitHub-Repository des Projekts',
+  'about.developedBy': 'Entwickelt von',
+  'about.close': 'Schließen',
 
   'home.welcome': 'Willkommen bei Inkly',
   'home.subtitle':

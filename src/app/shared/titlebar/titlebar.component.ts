@@ -1,25 +1,36 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { LucideCopy, LucideMinus, LucideMoon, LucideSquare, LucideSun, LucideX } from '@lucide/angular';
+import {
+  LucideCircleQuestionMark,
+  LucideCopy,
+  LucideMinus,
+  LucideMoon,
+  LucideSquare,
+  LucideSun,
+  LucideX,
+} from '@lucide/angular';
 import { isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { AboutComponent } from '../about/about.component';
 
 /**
  * Barre de titre personnalisée (fenêtre `decorations: false`).
  * - Le déplacement se fait via l'attribut `data-tauri-drag-region`.
  * - Les boutons appellent l'API window de Tauri ; hors Tauri
  *   (ex. `npm start` dans un navigateur) ils sont masqués.
+ * - Le « ? » après Inkly ouvre la fenêtre « À propos ».
  */
 @Component({
   selector: 'app-titlebar',
-  imports: [LucideCopy, LucideMinus, LucideMoon, LucideSquare, LucideSun, LucideX],
+  imports: [AboutComponent, LucideCircleQuestionMark, LucideCopy, LucideMinus, LucideMoon, LucideSquare, LucideSun, LucideX],
   templateUrl: './titlebar.component.html',
   styleUrl: './titlebar.component.css',
 })
 export class TitlebarComponent implements OnInit {
   readonly isTauri = signal(false);
   readonly isMaximized = signal(false);
+  readonly showAbout = signal(false);
 
   constructor(
     readonly i18n: I18nService,
@@ -76,5 +87,13 @@ export class TitlebarComponent implements OnInit {
     } catch {
       // Hors Tauri : action sans effet.
     }
+  }
+
+  openAbout(): void {
+    this.showAbout.set(true);
+  }
+
+  closeAbout(): void {
+    this.showAbout.set(false);
   }
 }

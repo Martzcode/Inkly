@@ -1,0 +1,38 @@
+<div class="backdrop" (click)="close()">
+  <div
+    class="dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="about-title"
+    (click)="$event.stopPropagation()"
+    (keydown.escape)="close()"
+    tabindex="-1"
+  >
+    <button
+      type="button"
+      class="close-btn"
+      (click)="close()"
+      [attr.aria-label]="i18n.t('about.close')"
+      [attr.title]="i18n.t('about.close')"
+    >
+      <svg lucideX [size]="16" aria-hidden="true"></svg>
+    </button>
+
+    <h2 id="about-title">{{ i18n.t('about.title') }}</h2>
+    <p class="desc">{{ i18n.t('about.description') }}</p>
+
+    <p class="row">
+      <span class="label">{{ i18n.t('about.repoLabel') }} :</span>
+      <button type="button" class="link" (click)="openExternal(repoUrl)">
+        {{ repoUrl }}
+      </button>
+    </p>
+
+    <p class="row">
+      <span class="label">{{ i18n.t('about.developedBy') }}</span>
+      <button type="button" class="link" (click)="openExternal(authorUrl)">
+        {{ authorName }}
+      </button>
+    </p>
+  </div>
+</div>

@@ -2,6 +2,16 @@
   <div class="brand" data-tauri-drag-region (dblclick)="toggleMaximize()">
     <span class="brand-mark" aria-hidden="true"></span>
     <span class="brand-name" data-tauri-drag-region>Inkly</span>
+    <button
+      type="button"
+      class="about-btn"
+      (click)="openAbout()"
+      (dblclick)="$event.stopPropagation()"
+      [attr.aria-label]="i18n.t('about.button')"
+      [attr.title]="i18n.t('about.button')"
+    >
+      <svg lucideCircleQuestionMark [size]="15" aria-hidden="true"></svg>
+    </button>
   </div>
 
   <button
@@ -44,3 +54,7 @@
     </div>
   }
 </header>
+
+@if (showAbout()) {
+  <app-about (closed)="closeAbout()" />
+}
